@@ -1,0 +1,8 @@
+version: "2026.1-placeholder"
+description: Mortgage default insurance rules, applied when LTV > 80%. Placeholder values for demo.
+applies_above_ltv_pct: 80
+max_purchase_price: 1500000
+max_amortization_years: 25
+max_amortization_years_first_time_or_new_build: 30
+min_credit_score_one_borrower: 600
+insurers: [CMHC, Sagen, Canada Guaranty]

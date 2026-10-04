@@ -1,0 +1,19 @@
+version: "2026.1-placeholder"
+description: Lender credit policy and risk appetite. Placeholder values for demo.
+gds_max_pct: 39
+tds_max_pct: 44
+min_credit_score: 680
+default_monthly_heat: 100
+condo_fee_gds_share_pct: 50
+rental_income_offset_pct: 50
+variable_income_averaging_years: 2
+closing_cost_reserve_pct: 1.5
+down_payment_history_days: 90
+large_deposit_threshold: 5000
+paystub_max_age_days: 30
+exception:
+  ratio_margin_pct: 2          # within this many points of a GDS/TDS limit → investigate
+  strong_credit_score: 760
+  reserve_months: 6
+  min_tenure_years: 5
+  approval_authority: Senior Underwriter

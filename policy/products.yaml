@@ -1,0 +1,9 @@
+version: "2026.1-placeholder"
+description: Mortgage product rules. Placeholder values for demo.
+conventional_max_amortization_years: 30
+condo_min_living_area_sqft: 400
+rural_allowed: false
+products:
+  - {name: 5-Year Fixed, term_years: 5, max_ltv_pct: 95}
+  - {name: 5-Year Variable, term_years: 5, max_ltv_pct: 95}
+  - {name: 3-Year Fixed, term_years: 3, max_ltv_pct: 95}
