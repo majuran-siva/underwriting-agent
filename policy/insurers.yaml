@@ -6,3 +6,12 @@ max_amortization_years: 25
 max_amortization_years_first_time_or_new_build: 30
 min_credit_score_one_borrower: 600
 insurers: [CMHC, Sagen, Canada Guaranty]
+premium:                       # % of loan amount, by LTV; added to the insured loan (standard published rates, placeholder)
+  tiers:
+    - {max_ltv_pct: 65, pct: 0.60}
+    - {max_ltv_pct: 75, pct: 1.70}
+    - {max_ltv_pct: 80, pct: 2.40}
+    - {max_ltv_pct: 85, pct: 2.80}
+    - {max_ltv_pct: 90, pct: 3.10}
+    - {max_ltv_pct: 95, pct: 4.00}
+  surcharge_over_25_years_pct: 0.20

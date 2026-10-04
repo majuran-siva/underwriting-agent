@@ -64,3 +64,13 @@ def min_down_payment(price: Decimal, tiers: list[dict], at_or_above_price: Decim
         if price > low:
             total += (min(price, high) - low) * Decimal(tier["pct"]) / HUNDRED
     return round_cents(total)
+
+
+def insurance_premium(loan_amount: Decimal, ltv_pct: Decimal, amortization_years: int, tiers: list[dict],
+                      surcharge_over_25_pct: Decimal) -> Decimal:
+    """Default insurance premium: the rate of the first tier whose max LTV covers ltv_pct, applied to the loan."""
+    tier = next((t for t in tiers if ltv_pct <= Decimal(str(t["max_ltv_pct"]))), None)
+    if tier is None:
+        raise ValueError(f"LTV {ltv_pct}% exceeds the highest insurable tier")
+    pct = Decimal(str(tier["pct"])) + (surcharge_over_25_pct if amortization_years > 25 else 0)
+    return round_cents(loan_amount * pct / HUNDRED)

@@ -8,7 +8,7 @@ from decimal import Decimal as D
 import pytest
 
 from underwriting.ratios import (
-    gds, housing_costs, ltv, min_down_payment, monthly_payment, qualifying_rate, tds,
+    gds, housing_costs, insurance_premium, ltv, min_down_payment, monthly_payment, qualifying_rate, tds,
 )
 
 TIERS = [{"from": 0, "to": 500000, "pct": 5}, {"from": 500000, "to": 1500000, "pct": 10}]
@@ -71,3 +71,22 @@ def test_ltv_uses_lending_value(price, appraised, expected):
 ])
 def test_min_down_payment_tiers(price, expected):
     assert min_down_payment(price, TIERS, at_or_above_price=D("1500000"), pct_at_or_above=D("20")) == expected
+
+
+PREMIUM_TIERS = [{"max_ltv_pct": 80, "pct": 2.40}, {"max_ltv_pct": 85, "pct": 2.80},
+                 {"max_ltv_pct": 90, "pct": 3.10}, {"max_ltv_pct": 95, "pct": 4.00}]
+
+
+@pytest.mark.parametrize("loan,ltv_pct,years,expected", [
+    (D("510000"), D("85.00"), 25, D("14280.00")),   # 2.80% — top of the 85% tier
+    (D("510600"), D("85.10"), 25, D("15828.60")),   # 3.10% — just over
+    (D("550000"), D("91.67"), 25, D("22000.00")),   # 4.00%
+    (D("550000"), D("91.67"), 30, D("23100.00")),   # 4.00% + 0.20% surcharge
+])
+def test_insurance_premium(loan, ltv_pct, years, expected):
+    assert insurance_premium(loan, ltv_pct, years, PREMIUM_TIERS, surcharge_over_25_pct=D("0.20")) == expected
+
+
+def test_insurance_premium_above_top_tier_raises():
+    with pytest.raises(ValueError):
+        insurance_premium(D("580000"), D("96.67"), 25, PREMIUM_TIERS, surcharge_over_25_pct=D("0.20"))

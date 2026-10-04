@@ -140,3 +140,16 @@ def test_findings_carry_evidence(policy):
 def test_policy_refs_have_version_and_hash(policy):
     refs = policy.refs()
     assert len(refs) == 4 and all(r.version and len(r.sha256) == 64 for r in refs)
+
+
+def test_insured_loan_adds_premium_to_payment(policy):
+    ratios, findings = evaluate(make_app(loan_amount="550000", first_time=True, amortization=30), policy)
+    assert ratios["insurance_premium"] == D("23100.00")
+    assert ratios["total_loan"] == D("573100.00")
+    assert ratios["ltv"] == D("91.67")    # LTV is on the base loan
+    assert any(e.field == "insurance_premium" for e in by_check(findings)["insurance_path"].evidence)
+
+
+def test_conventional_loan_has_no_premium(policy):
+    ratios, _ = evaluate(make_app(), policy)
+    assert ratios["insurance_premium"] == D("0") and ratios["total_loan"] == D("480000")

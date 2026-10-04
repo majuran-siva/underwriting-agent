@@ -79,16 +79,24 @@ def evaluate(app: Application, policy: Policy) -> tuple[dict[str, Decimal], list
 
     q_rate = r.qualifying_rate(loan.contract_rate, _d(reg["qualifying_rate"]["buffer_pct"]),
                                _d(reg["qualifying_rate"]["floor_pct"]))
+    # Insured loans (LTV on the base loan above the insurer threshold) add the premium to the loan.
+    ltv = r.ltv(loan.amount, prop.purchase_price, prop.appraised_value)
+    insured = ltv > _d(ins["applies_above_ltv_pct"])
+    premium = Decimal(0)
+    if insured and ltv <= _d(ins["premium"]["tiers"][-1]["max_ltv_pct"]):
+        premium = r.insurance_premium(loan.amount, ltv, loan.amortization_years, ins["premium"]["tiers"],
+                                      _d(ins["premium"]["surcharge_over_25_years_pct"]))
+    total_loan = loan.amount + premium
+
     heat = prop.monthly_heat if prop.monthly_heat is not None else _d(credit["default_monthly_heat"])
 
     def housing(rate: Decimal) -> tuple[Decimal, Decimal]:
-        payment = r.monthly_payment(loan.amount, rate, loan.amortization_years)
+        payment = r.monthly_payment(total_loan, rate, loan.amortization_years)
         return payment, r.housing_costs(payment, prop.annual_property_tax / 12, heat, prop.monthly_condo_fees,
                                         _d(credit["condo_fee_gds_share_pct"]))
 
     pay_c, housing_c = housing(loan.contract_rate)
     pay_q, housing_q = housing(q_rate)
-    ltv = r.ltv(loan.amount, prop.purchase_price, prop.appraised_value)
     ratios = {
         "qualifying_rate": q_rate,
         "qualifying_monthly_income": r.round_cents(monthly_income),
@@ -100,6 +108,8 @@ def evaluate(app: Application, policy: Policy) -> tuple[dict[str, Decimal], list
         "gds_qualifying": r.gds(housing_q, monthly_income),
         "tds_qualifying": r.tds(housing_q, other_debts, monthly_income),
         "ltv": ltv,
+        "insurance_premium": premium,
+        "total_loan": total_loan,
     }
 
     margin = _d(credit["exception"]["ratio_margin_pct"])
@@ -118,10 +128,11 @@ def evaluate(app: Application, policy: Policy) -> tuple[dict[str, Decimal], list
                               Evidence(doc=CALC, field="min_down_payment", value=f"{required}")]))
 
     # Insured vs conventional path.
-    insured = ltv > _d(ins["applies_above_ltv_pct"])
     ltv_ev = Evidence(doc=CALC, field="ltv", value=f"{ltv}%")
+    path_ev = [ltv_ev] + ([Evidence(doc=CALC, field="insurance_premium", value=f"{premium}")] if premium else [])
     findings.append(_finding("insurance_path", True,
-                             f"{'Insured' if insured else 'Conventional'} (LTV {ltv}%)", [ltv_ev]))
+                             f"Insured (LTV {ltv}%), premium ${premium:,} added to loan" if insured
+                             else f"Conventional (LTV {ltv}%)", path_ev))
     first_time_or_new = any(b.first_time_buyer for b in app.borrowers) or prop.new_build
     if insured:
         price_ok = prop.purchase_price < _d(ins["max_purchase_price"])
