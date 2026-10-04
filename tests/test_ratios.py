@@ -1,5 +1,8 @@
 """Expected values computed independently (float math, Canadian semi-annual compounding)
-and rounded to the cent / basis point."""
+and rounded to the cent / basis point.
+
+Payment values cross-checked 2026-10-04 against the FCAC Mortgage Calculator
+(https://itools-ioutils.fcac-acfc.gc.ca/MC-CH/MC-CH-eng.aspx, monthly frequency): all three match to the cent."""
 from decimal import Decimal as D
 
 import pytest
