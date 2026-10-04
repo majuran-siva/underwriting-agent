@@ -9,7 +9,7 @@ CENT = Decimal("0.01")
 HUNDRED = Decimal("100")
 
 
-def _round(value: Decimal) -> Decimal:
+def round_cents(value: Decimal) -> Decimal:
     return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
@@ -17,9 +17,9 @@ def monthly_payment(principal: Decimal, annual_rate_pct: Decimal, amortization_y
     """Blended monthly payment. Canadian fixed-rate mortgages compound semi-annually."""
     months = amortization_years * 12
     if annual_rate_pct == 0:
-        return _round(principal / months)
+        return round_cents(principal / months)
     monthly_rate = (1 + annual_rate_pct / HUNDRED / 2) ** (Decimal(1) / 6) - 1
-    return _round(principal * monthly_rate / (1 - (1 + monthly_rate) ** -months))
+    return round_cents(principal * monthly_rate / (1 - (1 + monthly_rate) ** -months))
 
 
 def qualifying_rate(contract_rate_pct: Decimal, buffer_pct: Decimal, floor_pct: Decimal) -> Decimal:
@@ -35,7 +35,7 @@ def housing_costs(monthly_pi: Decimal, monthly_property_tax: Decimal, monthly_he
 def _ratio(numerator: Decimal, gross_monthly_income: Decimal) -> Decimal:
     if gross_monthly_income <= 0:
         raise ValueError("gross monthly income must be positive")
-    return _round(numerator / gross_monthly_income * HUNDRED)
+    return round_cents(numerator / gross_monthly_income * HUNDRED)
 
 
 def gds(monthly_housing_costs: Decimal, gross_monthly_income: Decimal) -> Decimal:
@@ -50,17 +50,17 @@ def tds(monthly_housing_costs: Decimal, other_monthly_debts: Decimal, gross_mont
 def ltv(loan_amount: Decimal, purchase_price: Decimal, appraised_value: Decimal | None) -> Decimal:
     """Loan-to-value on lending value: the lower of purchase price and appraised value."""
     lending_value = purchase_price if appraised_value is None else min(purchase_price, appraised_value)
-    return _round(loan_amount / lending_value * HUNDRED)
+    return round_cents(loan_amount / lending_value * HUNDRED)
 
 
 def min_down_payment(price: Decimal, tiers: list[dict], at_or_above_price: Decimal,
                      pct_at_or_above: Decimal) -> Decimal:
     """Tiered minimum down payment. Each tier's pct applies to the slice of price in [from, to)."""
     if price >= at_or_above_price:
-        return _round(price * pct_at_or_above / HUNDRED)
+        return round_cents(price * pct_at_or_above / HUNDRED)
     total = Decimal(0)
     for tier in tiers:
         low, high = Decimal(tier["from"]), Decimal(tier["to"])
         if price > low:
             total += (min(price, high) - low) * Decimal(tier["pct"]) / HUNDRED
-    return _round(total)
+    return round_cents(total)

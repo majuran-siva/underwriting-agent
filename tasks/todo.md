@@ -16,7 +16,7 @@ Verify every task with `pytest -q` unless it says otherwise. Tests that call the
   - Files: underwriting/ratios.py, tests/test_ratios.py
   - Depends: 1
 
-- [ ] **Task 3: Policy evaluation** (M)
+- [x] **Task 3: Policy evaluation** (M)
   - Accept: evaluates the credit, product, insurer and regulatory layers → Findings with evidence; detects "near miss" within the exception margin.
   - Verify: a boundary test per rule; changing a YAML value flips the result.
   - Files: underwriting/policy.py, tests/test_policy.py
