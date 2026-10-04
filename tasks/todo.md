@@ -10,7 +10,7 @@ Verify every task with `pytest -q` unless it says otherwise. Tests that call the
   - Files: requirements.txt, underwriting/schemas.py, policy/*.yaml, tests/test_schemas.py
   - Depends: none
 
-- [ ] **Task 2: Ratio math (TDD)** (S)
+- [x] **Task 2: Ratio math (TDD)** (S)
   - Accept: semi-annual compounding payment, qualifying rate, GDS, TDS (including existing-property costs and the rental offset), LTV on lending value, minimum down payment.
   - Verify: hand-computed cases, plus boundaries at $500K, $1.5M, the 5.25% floor and 80% LTV.
   - Files: underwriting/ratios.py, tests/test_ratios.py
