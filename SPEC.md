@@ -154,7 +154,7 @@ Canadian mortgage payments compound semi-annually. The payment math has to use t
 
 | Case | Planted issue | Expected recommendation |
 |---|---|---|
-| `01-clean` | none | Approve with conditions (standard only) |
+| `01-clean` | none | Approve (standard conditions only) |
 | `02-inflated-income` | application says $92K, NOA says $68K | Decline: TDS fails at verified income, no exception path |
 | `03-tampered-paystub` | YTD gross doesn't equal per-period gross × pay periods | Refer for review: authenticity flag |
 | `04-hidden-debt` | $650/mo car payment in bank statements and credit report, not declared | Refer for review: undisclosed liability, TDS recalculated |

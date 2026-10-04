@@ -140,6 +140,7 @@ class Finding(BaseModel):
     message: str
     evidence: list[Evidence] = []
     near_miss: bool = False  # failed within the exception margin
+    needs_referral: bool = False  # requires human judgment (e.g. possible misrepresentation)
 
 
 class ExceptionCase(BaseModel):

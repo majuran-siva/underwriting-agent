@@ -22,7 +22,7 @@ Verify every task with `pytest -q` unless it says otherwise. Tests that call the
   - Files: underwriting/policy.py, tests/test_policy.py
   - Depends: 2
 
-- [ ] **Task 4: Recommendation rules** (S)
+- [x] **Task 4: Recommendation rules** (S)
   - Accept: findings → Approve / Approve with conditions / Refer / Decline, following the spec table.
   - Verify: unit tests for each outcome.
   - Files: underwriting/recommend.py, tests/test_recommend.py
@@ -46,7 +46,7 @@ Verify every task with `pytest -q` unless it says otherwise. Tests that call the
   - Depends: 5
 
 - [ ] **Task 7: Pipeline, case record, command line** (M)
-  - Accept: `python -m underwriting.cli samples/01-clean` → `cases/01-clean/record.json` with the document hashes, extracted fields, ratios, policy versions, model and prompt version, findings, standard conditions and the recommendation "Approve with conditions"; `--purge` deletes a case.
+  - Accept: `python -m underwriting.cli samples/01-clean` → `cases/01-clean/record.json` with the document hashes, extracted fields, ratios, policy versions, model and prompt version, findings, standard conditions and the recommendation "Approve"; `--purge` deletes a case.
   - Verify: an `@llm` golden test for case 01, plus a traceability test.
   - Files: underwriting/review.py, underwriting/case_record.py, underwriting/conditions.py, underwriting/cli.py, tests/test_golden.py
   - Depends: 3, 4, 6
