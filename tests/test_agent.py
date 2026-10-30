@@ -176,3 +176,13 @@ def test_messages_are_addressed_to_the_submitting_broker(client):
         assert m["body"].startswith("Hello Simone,")
     samples = client.get("/api/samples").json()
     assert all(s["pos"]["app_no"].startswith("MR-") for s in samples)
+
+
+def test_fulfilled_condition_moves_to_satisfied_in_the_report(client):
+    batch, v = upload_case(client, "case02")
+    cid = next(c["id"] for c in v["conditions"] if c["raised_by"] == "large_deposit")
+    after = client.post(f"/api/uploads/{batch}/action", json={"kind": "condition", "target": cid, "action": "fulfill"}).json()
+    sections = {s["title"]: s for s in after["review"]["draft"]["report"]}
+    assert cid in [i["id"] for i in sections["Conditions satisfied"]["items"]]
+    assert cid not in [i["id"] for i in sections["Conditions before approval"]["items"]]
+    assert "CONDITIONS SATISFIED" in after["review"]["draft"]["body"]

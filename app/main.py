@@ -159,7 +159,7 @@ def get_review(batch_id: str):
 class Action(BaseModel):
     kind: Literal["flag", "condition", "override", "confirm_doc", "send_request", "approve"]
     target: str = ""
-    action: str = ""  # flag: confirm | reject | escalate | undo; condition: accept | edit | reject
+    action: str = ""  # flag: confirm | reject | escalate | undo; condition: accept | edit | reject | fulfill
     value: str | None = None
     reason: str | None = None
 
@@ -186,7 +186,9 @@ def act(batch_id: str, a: Action):
             st["dismissed"].discard(a.target)
         _log(st, "Underwriter", f"Issue {a.target}: {a.action}" + (f" ({a.reason})" if a.reason else ""))
     elif a.kind == "condition":
-        st["condition_reviews"][a.target] = {"action": a.action, "text": a.value, "reason": a.reason}
+        previous = st["condition_reviews"].get(a.target, {})
+        text = a.value if a.action == "edit" else previous.get("text")   # keep an edit when fulfilling or restoring
+        st["condition_reviews"][a.target] = {"action": a.action, "text": text, "reason": a.reason}
         _log(st, "Underwriter", f"Condition {a.target}: {a.action}" + (f" ({a.reason})" if a.reason else ""))
     elif a.kind == "override":
         try:
