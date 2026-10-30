@@ -186,3 +186,13 @@ def test_fulfilled_condition_moves_to_satisfied_in_the_report(client):
     assert cid in [i["id"] for i in sections["Conditions satisfied"]["items"]]
     assert cid not in [i["id"] for i in sections["Conditions before approval"]["items"]]
     assert "CONDITIONS SATISFIED" in after["review"]["draft"]["body"]
+
+
+def test_sent_file_appears_first_in_reviewed_list(client):
+    batch, v = upload_case(client, "case01")
+    for f in v["flags"]:
+        client.post(f"/api/uploads/{batch}/action", json={"kind": "flag", "target": f["id"], "action": "confirm"})
+    client.post(f"/api/uploads/{batch}/action", json={"kind": "approve"})
+    reviewed = client.get("/api/reviewed").json()
+    assert reviewed[0]["app_no"] == "MR-26-10412" and reviewed[0]["reviewed_by"] == "You"
+    assert {r["source"] for r in reviewed} <= {"Filogix", "Lendesk", "Velocity"}

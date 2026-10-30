@@ -66,8 +66,17 @@ button.link:hover { background: none; text-decoration-thickness: 2px; }
 .kpis b { display: block; font: 540 24px/1.2 var(--sans); letter-spacing: -.4px; }
 .kpis span { font: 400 11px/1 var(--mono); letter-spacing: .6px; text-transform: uppercase; }
 .queue { border: 1px solid var(--hairline); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 16px; }
-.qrow { display: grid; grid-template-columns: 1.1fr 2.2fr 1fr 1.5fr 1fr auto; gap: 16px; align-items: center; padding: 14px 24px; border-top: 1px solid var(--hairline-soft); cursor: pointer; transition: background .12s; }
+.qrow { display: grid; grid-template-columns: 1.1fr .8fr 2.2fr 1fr 1.5fr 1fr 150px; gap: 16px; align-items: center; padding: 14px 24px; border-top: 1px solid var(--hairline-soft); cursor: pointer; transition: background .12s; }
 .qrow:hover { background: var(--surface-soft); }
+.qrow.static { cursor: default; }
+.qrow > span:last-child { justify-self: end; }
+.src { font: 400 11px/1 var(--mono); letter-spacing: .6px; text-transform: uppercase; padding: 6px 10px; border-radius: var(--r-pill); background: var(--surface-soft); }
+.outcome { font: 400 11px/1 var(--mono); letter-spacing: .6px; text-transform: uppercase; padding: 6px 10px; border-radius: var(--r-pill); background: var(--surface-soft); white-space: nowrap; }
+.outcome.o-ok { background: var(--mint); } .outcome.o-attn { background: var(--cream); } .outcome.o-bad { background: var(--pink); }
+.listbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.seg { display: flex; gap: 6px; }
+.queue.over { outline: 2px dashed var(--ink); outline-offset: 4px; }
+.dropnote { padding: 12px 24px; font: 400 11px/1.4 var(--mono); letter-spacing: .6px; text-transform: uppercase; color: #8a8a8a; border-top: 1px solid var(--hairline-soft); text-align: center; }
 .qrow.qhead { border-top: 0; cursor: default; font: 400 11px/1 var(--mono); letter-spacing: .6px; text-transform: uppercase; padding: 14px 24px; background: var(--canvas); }
 .qrow b { display: block; font-weight: 540; font-size: 15px; }
 .qrow small { display: flex; align-items: center; gap: 6px; font-size: 13px; }
@@ -198,6 +207,8 @@ button.link:hover { background: none; text-decoration-thickness: 2px; }
 .msgsum { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .msgsum b { font-size: 15px; }
 .msgfoot { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid var(--hairline-soft); flex-wrap: wrap; }
+.msg.sent .ehead { background: var(--canvas); border-bottom: 1px solid var(--hairline-soft); }
+.msg.sent pre.sentbody { padding: 18px; max-height: 60vh; overflow: auto; font: 400 13px/1.6 var(--mono); }
 .msg.sent details { padding: 0 18px; }
 .msg.sent details summary { font-size: 14px; padding: 10px 0; text-decoration: underline; text-underline-offset: 3px; }
 .msg.sent details pre { padding: 0 0 16px; }
@@ -245,8 +256,8 @@ select:focus, input:focus, textarea:focus { outline: 2px solid var(--ink); outli
   .tile b { font-size: 22px; }
   .qrow { grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px; }
   .qrow.qhead { display: none; }
-  .qrow > span:nth-child(2), .qrow > span:nth-child(4) { grid-column: 1 / -1; }
-  .qrow > span:nth-child(5) { display: none; }
+  .qrow > span:nth-child(3), .qrow > span:nth-child(5) { grid-column: 1 / -1; }
+  .qrow > span:nth-child(2), .qrow > span:nth-child(6) { display: none; }
   .cols, .viewer, .issues-grid, .attention { grid-template-columns: 1fr; }
   .tabs { padding: 16px 12px 0; }
   .cond { flex-direction: column; gap: 8px; }
@@ -259,7 +270,7 @@ select:focus, input:focus, textarea:focus { outline: 2px solid var(--ink); outli
 <header>
   <div class="brand"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#000"/><path d="M21.5 10.2A8 8 0 1 0 21.5 21.8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M13 16h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="16" r="2.6" fill="#dceeb1"/></svg><div><h1>Clearline</h1><small>Underwriting agent</small></div></div>
   <span class="spacer"></span><span class="tag">Synthetic data · prototype</span>
-  <button id="newBtn" onclick="startScreen()" hidden>New file</button>
+  <button id="newBtn" onclick="startScreen()" hidden>← Inbox</button>
 </header>
 <main id="app"></main>
 <input type="file" id="picker" multiple hidden>
@@ -285,39 +296,63 @@ async function api(path, body) {
 const short = m => m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`;
 const compact = v => v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M` : `$${Math.round(v / 1e3)}K`;
 const ago = m => m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} hr ${m % 60} min ago`;
-async function startScreen() {
+let listTab = "new";
+const OUTCOME_TONE = {"Conditions sent": "attn", "Clear to approve": "ok", "Referred to senior": "attn", "Declined": "bad"};
+async function startScreen(which) {
   $("#newBtn").hidden = true; view = null;
+  if (which) listTab = which;
   samples = samples.length ? samples : await api("/api/samples");
+  const done = await api("/api/reviewed");
   const rows = [...samples].sort((x, y) => x.pos.received_min_ago - y.pos.received_min_ago);
+  const isNew = listTab === "new";
+  const avgTurn = Math.round(done.reduce((t, r) => t + r.turnaround_min, 0) / done.length);
+  const hero = isNew
+    ? `<div><h1 class="display">${rows.length} new applications</h1><p class="lede" style="margin:0">Pick one to start a review.</p></div>
+       <div class="kpis"><div><b>${rows.length}</b><span>Waiting</span></div>
+         <div><b>${short(rows[rows.length - 1].pos.received_min_ago)}</b><span>Oldest waiting</span></div>
+         <div><b>${compact(rows.reduce((t, r) => t + Number(r.loan_amount), 0))}</b><span>Loan volume</span></div></div>`
+    : `<div><h1 class="display">${done.length} reviewed today</h1><p class="lede" style="margin:0">Files that have been through review.</p></div>
+       <div class="kpis"><div><b>${done.length}</b><span>Reviewed</span></div>
+         <div><b>${avgTurn} min</b><span>Avg. turnaround</span></div>
+         <div><b>${done.filter(r => r.outcome === "Conditions sent").length}</b><span>Conditions sent</span></div></div>`;
+  const src = r => `<span class="src">${esc(r.source)}</span>`;
+  const newRows = rows.map(r => `<div class="qrow" role="row" onclick="sendSample('${r.id}')">
+      <span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
+      <span>${src(r.pos)}</span>
+      <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)} · ${esc(r.income_type)}</small></span>
+      <span><b>${money(r.loan_amount)}</b><small>of ${money(r.purchase_price)}</small></span>
+      <span><b>${esc(r.pos.broker)}</b><small>${esc(r.pos.brokerage)}</small></span>
+      <span><small>${ago(r.pos.received_min_ago)}</small></span>
+      <span><button class="dark" onclick="event.stopPropagation(); sendSample('${r.id}')">Start review</button></span></div>`).join("");
+  const doneRows = done.map(r => `<div class="qrow static" role="row">
+      <span><b>${esc(r.app_no)}</b><small>${esc(r.reviewed_by)} · ${r.turnaround_min} min</small></span>
+      <span>${src(r)}</span>
+      <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)}</small></span>
+      <span><b>${money(r.loan_amount)}</b></span>
+      <span><b>${esc(r.broker)}</b><small>${esc(r.brokerage)}</small></span>
+      <span><small>${r.reviewed_min_ago ? ago(r.reviewed_min_ago) : "Just now"}</small></span>
+      <span><span class="outcome o-${OUTCOME_TONE[r.outcome] || "none"}">${esc(r.outcome)}</span></span></div>`).join("");
   $("#app").innerHTML = `
-    <section class="band block lime"><div class="inner queuehead">
-      <div><span class="eyebrow">Inbox · broker POS</span>
-        <h1 class="display">${rows.length} new applications</h1>
-        <p class="lede" style="margin:0">Pick one to start a review.</p></div>
-      <div class="kpis"><div><b>${rows.length}</b><span>Waiting</span></div>
-        <div><b>${short(rows[rows.length - 1].pos.received_min_ago)}</b><span>Oldest waiting</span></div>
-        <div><b>${compact(rows.reduce((t, r) => t + Number(r.loan_amount), 0))}</b><span>Loan volume</span></div></div>
-    </div></section>
+    <section class="band block lime"><div class="inner queuehead">${hero}</div></section>
     <section class="band light tight"><div class="inner">
-      <div class="queue" role="table" aria-label="Incoming applications">
-        <div class="qrow qhead" role="row"><span>Application</span><span>Borrower · property</span><span>Loan</span><span>Broker</span><span>Received</span><span></span></div>
-        ${rows.map(r => `<div class="qrow" role="row" onclick="sendSample('${r.id}')">
-          <span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
-          <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)} · ${esc(r.income_type)}</small></span>
-          <span><b>${money(r.loan_amount)}</b><small>of ${money(r.purchase_price)}</small></span>
-          <span><b>${esc(r.pos.broker)}</b><small>${esc(r.pos.brokerage)}</small></span>
-          <span><small>${ago(r.pos.received_min_ago)}</small></span>
-          <span><button class="dark" onclick="event.stopPropagation(); sendSample('${r.id}')">Start review</button></span></div>`).join("")}
+      <div class="listbar">
+        <div class="seg" role="tablist">
+          <button role="tab" aria-selected="${isNew}" class="tabbtn ${isNew ? "on" : ""}" onclick="startScreen('new')">New <span class="tbadge">${rows.length}</span></button>
+          <button role="tab" aria-selected="${!isNew}" class="tabbtn ${isNew ? "" : "on"}" onclick="startScreen('reviewed')">Reviewed <span class="tbadge">${done.length}</span></button>
+        </div>
+        <button class="primary" onclick="$('#picker').click()">⇪ Upload Loan Application</button>
       </div>
-      <div class="drop light" id="drop" onclick="$('#picker').click()">
-        <div class="grow"><b>Not in the inbox?</b> <span class="muted">Drop files here to review them manually.</span></div>
-        <button type="button">Choose files</button>
+      <div class="queue" id="drop" role="table" aria-label="${isNew ? "New applications" : "Reviewed applications"}">
+        <div class="qrow qhead" role="row"><span>Application</span><span>Source</span><span>Borrower · property</span><span>Loan</span><span>Broker</span>
+          <span>${isNew ? "Received" : "Reviewed"}</span><span>${isNew ? "" : "Outcome"}</span></div>
+        ${isNew ? newRows : doneRows}
+        <div class="dropnote">Drop PDFs or photos anywhere on this list to upload a loan application.</div>
       </div>
     </div></section>`;
   const drop = $("#drop");
   drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
   drop.ondragleave = () => drop.classList.remove("over");
-  drop.ondrop = e => { e.preventDefault(); uploadFiles([...e.dataTransfer.files]); };
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); uploadFiles([...e.dataTransfer.files]); };
 }
 $("#picker").onchange = e => { uploadFiles([...e.target.files]); e.target.value = ""; };
 
@@ -443,10 +478,9 @@ function render() {
     ["Term · amortization", `${L.term_years} yr · ${L.amortization_years} yr`, esc(L.product)]];
 
   const kindLabel = k => k === "document_request" ? "Document request" : "Review report & conditions";
-  const msgs = rv.messages.map(m => `<div class="msg sent"><header><span class="pill sent">✓ Sent</span><b>${kindLabel(m.kind)}</b>
-      <span class="muted">${esc(m.subject)}</span><span style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header>
-      <details><summary>${m.report ? "Show report" : "Show message"}</summary>${m.report
-        ? `<div class="report">${reportStatus(m.status)}${reportSections(m.report)}${reportConditions(m.report)}</div>` : `<pre>${esc(m.body)}</pre>`}</details></div>`).join("");
+  const msgs = rv.messages.map(m => `<div class="msg sent"><header><span class="pill sent">✓ Sent</span><b>${kindLabel(m.kind)}</b><span style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header>
+      <div class="ehead"><div><span>From</span>${esc(m.from)}</div><div><span>To</span>${esc(m.to)}</div><div><span>Subject</span><b>${esc(m.subject)}</b></div></div>
+      <pre class="sentbody">${esc(m.body)}</pre></div>`).join("");
   const req = rv.request_draft && !rv.approved ? `<div class="msg"><header><span class="pill">Draft</span><b>Document request</b>
       <span class="muted">${esc(rv.request_draft.subject)}</span></header><pre>${esc(rv.request_draft.body)}</pre>
       <div class="msgfoot"><span class="muted small">Plain document request. Can go now, before you finish reviewing.</span>

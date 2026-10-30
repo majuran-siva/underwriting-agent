@@ -22,7 +22,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from underwriting import agent, broker
-from underwriting.demo_cases import CASES, get_case
+from underwriting.demo_cases import CASES, REVIEWED, get_case
 
 ROOT = Path(__file__).parent.parent
 STATIC = Path(__file__).parent / "static"
@@ -98,6 +98,25 @@ def samples():
                     "income_type": "Self-employed" if any(i["type"] == "self_employed" for b in app["borrowers"]
                                                           for i in b["incomes"]) else "Salaried"})
     return out
+
+
+@app.get("/api/reviewed")
+def reviewed():
+    """Files sent to the broker in this session, newest first, followed by earlier (dummy) reviews."""
+    out = []
+    for st in reversed(list(BATCHES.values())):
+        if not st["approved"]:
+            continue
+        case = get_case(st["case_id"])
+        app_, pos = case["application"], case["pos"]
+        started = datetime.fromisoformat(st["audit"][0]["at"])
+        sent = datetime.fromisoformat(st["approved"]["at"])
+        out.append({"app_no": pos["app_no"], "source": pos["source"], "borrowers": [b["name"] for b in app_["borrowers"]],
+                    "address": app_["property"]["address"], "loan_amount": app_["loan"]["amount"],
+                    "broker": pos["broker"], "brokerage": pos["brokerage"], "outcome": "Conditions sent",
+                    "reviewed_by": "You", "turnaround_min": max(1, round((sent - started).total_seconds() / 60)),
+                    "reviewed_min_ago": 0})
+    return out + REVIEWED
 
 
 @app.post("/api/uploads")

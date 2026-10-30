@@ -296,21 +296,40 @@ CASES: list[dict] = [
 
 # How each file arrived: submitted by a (fictional) broker through the point-of-sale system.
 POS = {
-    "case01": {"app_no": "MR-26-10412", "broker": "Jordan Patel", "brokerage": "Northshore Mortgage Group",
+    "case01": {"app_no": "MR-26-10412", "source": "Filogix", "broker": "Jordan Patel", "brokerage": "Northshore Mortgage Group",
                "email": "jordan.patel@northshore-mortgage.example", "received_min_ago": 4},
-    "case02": {"app_no": "MR-26-10415", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
+    "case02": {"app_no": "MR-26-10415", "source": "Velocity", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
                "email": "s.tremblay@keystone-home.example", "received_min_ago": 11},
-    "case03": {"app_no": "MR-26-10398", "broker": "Ravi Menon", "brokerage": "Lakeside Mortgage Partners",
+    "case03": {"app_no": "MR-26-10398", "source": "Lendesk", "broker": "Ravi Menon", "brokerage": "Lakeside Mortgage Partners",
                "email": "ravi@lakeside-mortgage.example", "received_min_ago": 26},
-    "case04": {"app_no": "MR-26-10391", "broker": "Claire Dubois", "brokerage": "Northshore Mortgage Group",
+    "case04": {"app_no": "MR-26-10391", "source": "Filogix", "broker": "Claire Dubois", "brokerage": "Northshore Mortgage Group",
                "email": "claire.dubois@northshore-mortgage.example", "received_min_ago": 38},
-    "case05": {"app_no": "MR-26-10377", "broker": "Owen MacLeod", "brokerage": "Harbour Point Mortgages",
+    "case05": {"app_no": "MR-26-10377", "source": "Velocity", "broker": "Owen MacLeod", "brokerage": "Harbour Point Mortgages",
                "email": "owen.macleod@harbourpoint.example", "received_min_ago": 52},
-    "case06": {"app_no": "MR-26-10369", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
+    "case06": {"app_no": "MR-26-10369", "source": "Lendesk", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
                "email": "s.tremblay@keystone-home.example", "received_min_ago": 75},
 }
 for _case in CASES:
     _case["pos"] = POS[_case["id"]]
+
+# Files already reviewed earlier today (display only; no documents behind them).
+REVIEWED = [
+    {"app_no": "MR-26-10352", "source": "Filogix", "borrowers": ["Leila Haddad"], "address": "77 Queen St E, Brampton ON",
+     "loan_amount": "512000", "broker": "Jordan Patel", "brokerage": "Northshore Mortgage Group",
+     "outcome": "Conditions sent", "reviewed_by": "A. Okafor", "turnaround_min": 12, "reviewed_min_ago": 95},
+    {"app_no": "MR-26-10348", "source": "Velocity", "borrowers": ["Ben & Grace Whitfield"], "address": "9 Cedar Ridge Way, Guelph ON",
+     "loan_amount": "638000", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
+     "outcome": "Clear to approve", "reviewed_by": "A. Okafor", "turnaround_min": 7, "reviewed_min_ago": 130},
+    {"app_no": "MR-26-10341", "source": "Lendesk", "borrowers": ["Arjun Mehta"], "address": "1203-8 Lakeview Blvd, Toronto ON",
+     "loan_amount": "455000", "broker": "Ravi Menon", "brokerage": "Lakeside Mortgage Partners",
+     "outcome": "Referred to senior", "reviewed_by": "J. Fontaine", "turnaround_min": 21, "reviewed_min_ago": 182},
+    {"app_no": "MR-26-10333", "source": "Filogix", "borrowers": ["Sofia Marchetti"], "address": "44 Bayfield Rd, Barrie ON",
+     "loan_amount": "389000", "broker": "Claire Dubois", "brokerage": "Northshore Mortgage Group",
+     "outcome": "Conditions sent", "reviewed_by": "J. Fontaine", "turnaround_min": 15, "reviewed_min_ago": 240},
+    {"app_no": "MR-26-10327", "source": "Velocity", "borrowers": ["Kwame Asante"], "address": "210 Ridgewood Ave, Ajax ON",
+     "loan_amount": "472000", "broker": "Owen MacLeod", "brokerage": "Harbour Point Mortgages",
+     "outcome": "Declined", "reviewed_by": "A. Okafor", "turnaround_min": 18, "reviewed_min_ago": 305},
+]
 
 
 def get_case(case_id: str) -> dict:
