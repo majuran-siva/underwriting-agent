@@ -66,9 +66,8 @@ def _view(batch_id: str) -> dict:
     result = agent.run(_case_for(st), st["overrides"], st["dismissed"])
     low_conf = [d["id"] for d in result["documents"] if d["confidence"] < agent.LOW_CONFIDENCE]
     requested = {cid for m in st["messages"] for cid in m["condition_ids"]}
-    auto_handled = {c["flag_id"] for c in result["conditions"] if c["id"] in requested
-                    and c["raised_by"] in broker.AUTO_SEND_CHECKS}   # already requested from the broker
-    open_flags = [f["id"] for f in result["flags"] if f["id"] not in st["flag_reviews"] and f["id"] not in auto_handled]
+    open_flags = [f["id"] for f in result["flags"] if f["id"] not in st["flag_reviews"]
+                  and f["check"] not in broker.DOCUMENT_REQUEST_CHECKS]   # those are handled by requesting the document
     unconfirmed = [d for d in low_conf if d not in st["confirmed_docs"]]
     blockers = ([f"review {len(open_flags)} issue{'s' * (len(open_flags) != 1)}"] if open_flags else []) + \
                ([f"confirm {len(unconfirmed)} hard-to-read document{'s' * (len(unconfirmed) != 1)}"] if unconfirmed else [])
@@ -76,7 +75,8 @@ def _view(batch_id: str) -> dict:
         "flag_reviews": st["flag_reviews"], "condition_reviews": st["condition_reviews"],
         "confirmed_docs": sorted(st["confirmed_docs"]), "overrides": st["overrides"], "audit": st["audit"],
         "approved": st["approved"], "blockers": blockers, "reason_codes": REASON_CODES,
-        "messages": st["messages"], "draft": broker.review_message(result, st["condition_reviews"], requested)}}
+        "messages": st["messages"], "draft": broker.review_message(result, st["condition_reviews"], requested),
+        "request_draft": None if st["request_sent"] else broker.document_request(result)}}
 
 
 @app.get("/")
@@ -100,7 +100,7 @@ def new_batch():
     batch_id = f"b{len(BATCHES) + 1:04d}"
     BATCHES[batch_id] = {"uploads": [], "filenames": set(), "case_id": None, "overrides": {}, "dismissed": set(),
                          "flag_reviews": {}, "condition_reviews": {}, "confirmed_docs": set(), "audit": [],
-                         "messages": [], "approved": None}
+                         "messages": [], "approved": None, "request_sent": False}
     return {"batch_id": batch_id}
 
 
@@ -141,9 +141,8 @@ def start_review(batch_id: str):
     view = _view(batch_id)
     _log(st, "Agent", f"Review ready: {len(view['flags'])} issues, {len(view['conditions'])} draft conditions")
     request = broker.document_request(view)
-    if request:   # the one thing the agent sends by itself: plain document requests
-        st["messages"].append({**request, "at": _now()})
-        _log(st, "Agent", f"Sent document request to broker ({len(request['condition_ids'])} items)")
+    if request:   # drafted only; the underwriter decides when it goes
+        _log(st, "Agent", f"Drafted document request for the broker ({len(request['condition_ids'])} items)")
     return _view(batch_id)
 
 
@@ -153,7 +152,7 @@ def get_review(batch_id: str):
 
 
 class Action(BaseModel):
-    kind: Literal["flag", "condition", "override", "confirm_doc", "approve"]
+    kind: Literal["flag", "condition", "override", "confirm_doc", "send_request", "approve"]
     target: str = ""
     action: str = ""  # flag: confirm | reject | escalate | undo; condition: accept | edit | reject
     value: str | None = None
@@ -194,11 +193,19 @@ def act(batch_id: str, a: Action):
     elif a.kind == "confirm_doc":
         st["confirmed_docs"].add(a.target)
         _log(st, "Underwriter", f"Confirmed hard-to-read document {a.target} against the source")
+    elif a.kind == "send_request":
+        request = _view(batch_id)["review"]["request_draft"]
+        if not request:
+            raise HTTPException(409, "No document request to send")
+        st["messages"].append({**request, "at": _now()})
+        st["request_sent"] = True
+        _log(st, "Underwriter", f"Sent document request to broker ({len(request['condition_ids'])} items)")
     elif a.kind == "approve":
         view = _view(batch_id)
         if view["review"]["blockers"]:
             raise HTTPException(409, "Before sending: " + "; ".join(view["review"]["blockers"]))
         message = {**view["review"]["draft"], "at": _now()}
+        st["request_sent"] = True   # the conditions message covers any unsent document request
         st["messages"].append(message)
         st["approved"] = {"at": message["at"], "conditions": message["condition_ids"]}
         _log(st, "Underwriter", f"Approved and sent conditions to broker ({len(message['condition_ids'])} conditions)")

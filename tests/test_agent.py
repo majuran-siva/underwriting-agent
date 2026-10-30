@@ -102,14 +102,18 @@ def test_files_not_uploaded_show_as_missing(client):
     assert any(f["check"] == "missing_document" and "pay stub" in f["title"] for f in v["flags"])
 
 
-def test_agent_sends_only_document_requests_by_itself(client):
-    _, v = upload_case(client, "case06")
-    [msg] = v["review"]["messages"]
-    assert msg["from"].startswith("Agent")
-    assert "Notice of Assessment" in msg["body"] and "legible copy" in msg["body"]
-    assert "2-year" not in msg["body"]  # judgment items wait for the underwriter
+def test_agent_drafts_document_request_but_never_sends_it(client):
+    batch, v = upload_case(client, "case06")
+    assert v["review"]["messages"] == []
+    draft = v["review"]["request_draft"]
+    assert "Notice of Assessment" in draft["body"] and "legible copy" in draft["body"]
+    assert "2-year" not in draft["body"]  # judgment items wait for the full conditions message
+    sent = client.post(f"/api/uploads/{batch}/action", json={"kind": "send_request"}).json()
+    [msg] = sent["review"]["messages"]
+    assert msg["kind"] == "document_request" and sent["review"]["request_draft"] is None
+    assert any("Underwriter" in a["who"] and "document request" in a["text"] for a in sent["review"]["audit"])
     _, clean = upload_case(client, "case01")
-    assert clean["review"]["messages"] == []
+    assert clean["review"]["request_draft"] is None
 
 
 def test_override_recalculates_and_persists(client):
@@ -133,10 +137,33 @@ def test_sending_blocked_until_issues_reviewed_and_documents_confirmed(client):
     act = lambda body: client.post(f"/api/uploads/{batch}/action", json=body)
     assert act({"kind": "approve"}).status_code == 409
     for f in v["flags"]:
-        if f["check"] not in ("missing_document", "low_confidence"):  # already requested from the broker
+        if f["check"] not in ("missing_document", "low_confidence"):  # handled by requesting the document
             act({"kind": "flag", "target": f["id"], "action": "confirm"})
     assert act({"kind": "approve"}).status_code == 409   # blurry statement not confirmed yet
     act({"kind": "confirm_doc", "target": "bank"})
     done = act({"kind": "approve"}).json()
     assert done["review"]["approved"]["conditions"]
-    assert done["review"]["messages"][-1]["from"].startswith("Underwriter")
+    assert done["review"]["messages"][-1]["kind"] == "conditions"
+    assert done["review"]["request_draft"] is None  # covered by the conditions message
+
+
+def test_broker_report_covers_the_review_and_conditions(client):
+    _, v = upload_case(client, "case02")
+    draft = v["review"]["draft"]
+    titles = [sec["title"] for sec in draft["report"]]
+    assert titles == ["File summary", "Qualification", "Income used to qualify", "Debts included", "Documents",
+                      "Conditions before approval", "Conditions before funding"]
+    for text in ("Closing date: Dec 1, 2026", "TDS: 44.91% ✗", "Riverside Auto Credit", "$25,000.00 deposit"):
+        assert text in draft["body"]
+
+
+def test_broker_report_leaves_out_internal_notes(client):
+    batch, v = upload_case(client, "case05")
+    body = v["review"]["draft"]["body"].lower()
+    for internal in ("alteration", "editing", "edited", "hidden", "refer", "recommend", "fraud"):
+        assert internal not in body
+    # a condition the underwriter removes disappears from the report
+    cid = next(c["id"] for c in v["conditions"] if c["raised_by"])
+    after = client.post(f"/api/uploads/{batch}/action", json={"kind": "condition", "target": cid, "action": "reject",
+                                                               "reason": "Not relevant to this file"}).json()
+    assert cid not in after["review"]["draft"]["condition_ids"]

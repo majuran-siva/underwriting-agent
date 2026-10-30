@@ -38,8 +38,8 @@ header .spacer { flex: 1; }
 .band.soft { background: var(--surface-soft); }
 .inner { max-width: 1200px; margin: 0 auto; }
 .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); background: var(--primary); color: var(--on-primary); }
-.display { font: 500 72px/1.0 var(--display); letter-spacing: -1.6px; margin: 20px 0 16px; }
-.lede { font-size: 18px; line-height: 1.56; color: var(--on-dark-mute); max-width: 620px; margin: 0 0 40px; }
+.display { font: 500 40px/1.1 var(--display); letter-spacing: -.8px; margin: 12px 0 8px; }
+.lede { font-size: 16px; line-height: 1.5; color: var(--on-dark-mute); max-width: 720px; margin: 0 0 24px; }
 .heading { font: 500 32px/1.19 var(--display); letter-spacing: -.5px; margin: 0 0 24px; }
 .muted { color: var(--mute); }
 .dark .muted { color: var(--on-dark-mute); }
@@ -58,10 +58,10 @@ button.link { background: none; padding: 0; color: var(--link); font-weight: 600
 button.link:hover { background: none; text-decoration: underline; }
 
 /* start */
-.drop { border: 1.5px dashed var(--hairline-dark); border-radius: var(--r-lg); padding: 48px 32px; background: var(--surface-elevated); display: flex; align-items: center; gap: 24px; flex-wrap: wrap; cursor: pointer; transition: border-color .15s, background .15s; }
+.drop { border: 1.5px dashed var(--hairline-dark); border-radius: var(--r-lg); padding: 20px 24px; background: var(--surface-elevated); display: flex; align-items: center; gap: 24px; flex-wrap: wrap; cursor: pointer; transition: border-color .15s, background .15s; }
 .drop.over, .drop:hover { border-color: #fff; background: #1d2023; }
-.drop .icon { width: 56px; height: 56px; border-radius: 16px; background: var(--primary); display: grid; place-items: center; font-size: 26px; }
-.drop .big { font: 500 24px/1.33 var(--display); }
+.drop .icon { width: 44px; height: 44px; border-radius: 12px; background: var(--primary); display: grid; place-items: center; font-size: 26px; }
+.drop .big { font: 500 20px/1.4 var(--display); }
 .drop .sub { color: var(--on-dark-mute); font-size: 14px; }
 .drop .grow { flex: 1; min-width: 220px; }
 .samples { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
@@ -93,7 +93,9 @@ button.link:hover { background: none; text-decoration: underline; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* dashboard hero */
-.band.slim { padding: 28px 32px; }
+.band.slim { padding: 22px 32px; }
+.band.hero { padding: 36px 32px 32px; }
+.band.light.tight, .band.soft.tight { padding-top: 28px; }
 .band.tight { padding-top: 28px; padding-bottom: 40px; }
 .doc button.link { text-align: left; }
 .card h2 .muted { font-weight: 400; }
@@ -174,6 +176,25 @@ button.link:hover { background: none; text-decoration: underline; }
 .pill { font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); background: var(--primary); color: var(--on-primary); }
 .pill.auto { background: var(--ink); color: #fff; }
 .pill.sent { background: var(--teal); color: #fff; }
+.msg.sent { border-color: var(--hairline-light); }
+.msg.sent details { padding: 0 20px; }
+.msg.sent details summary { font-size: 14px; padding: 10px 0; color: var(--link); }
+.msg.sent details pre { padding: 0 0 16px; }
+.msgfoot { display: flex; gap: 16px; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--hairline-light); flex-wrap: wrap; }
+.report { padding: 4px 20px 8px; }
+.rstatus { margin: 12px 0 4px; font-weight: 600; }
+.rgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 24px; }
+.rsec { padding: 14px 0; border-top: 1px solid var(--hairline-light); }
+.rsec h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--mute); }
+.rsec p { margin: 0 0 6px; }
+.rsec table td { border: 0; padding: 4px 8px 4px 0; }
+.rsec table td:first-child { color: var(--mute); width: 38%; }
+.rsec b.ok { color: #00795b; } .rsec b.over { color: var(--deep-red); }
+.rsec ol { margin: 0; padding-left: 20px; } .rsec ol li { padding: 4px 0; }
+.rsec .cond:first-of-type { padding-top: 0; }
+.toast { position: fixed; right: 24px; bottom: 24px; z-index: 50; background: var(--canvas-dark); color: #fff; font-weight: 600; font-size: 15px;
+  padding: 14px 22px; border-radius: var(--r-full); box-shadow: 0 8px 24px rgba(0,0,0,.25); opacity: 0; transform: translateY(12px); transition: .25s; }
+.toast.show { opacity: 1; transform: none; }
 .cond { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--hairline-light); font-size: 15px; }
 .cond:last-child { border-bottom: 0; }
 .cond .x { margin-left: auto; white-space: nowrap; }
@@ -202,7 +223,8 @@ select, input, textarea { font: inherit; width: 100%; padding: 14px 16px; border
   .band { padding: 40px 16px; }
   header { padding: 0 16px; }
   header .org, .tag { display: none; }
-  .display { font-size: 44px; letter-spacing: -.8px; }
+  .display { font-size: 30px; letter-spacing: -.5px; }
+  .band.hero { padding: 24px 16px; }
   .band.slim { padding: 24px 16px; }
   .status { grid-template-columns: 1fr; gap: 16px; }
   .facts { gap: 8px 20px; }
@@ -245,9 +267,9 @@ async function startScreen() {
   $("#newBtn").hidden = true; view = null;
   samples = samples.length ? samples : await api("/api/samples");
   $("#app").innerHTML = `
-    <section class="band dark"><div class="inner">
+    <section class="band dark hero"><div class="inner">
       <span class="eyebrow">First review</span>
-      <h1 class="display">Review a loan file<br>in minutes.</h1>
+      <h1 class="display">Review a loan file in minutes.</h1>
       <p class="lede">Drop in the broker's documents. The agent reads them, checks them against policy and drafts what to ask the broker for. You make the call.</p>
       <div class="drop" id="drop" onclick="$('#picker').click()">
         <div class="icon">⇪</div>
@@ -256,8 +278,8 @@ async function startScreen() {
         <button class="btn-light" type="button">Choose files</button>
       </div>
     </div></section>
-    <section class="band light"><div class="inner">
-      <h2 class="heading">Or send in a sample file</h2>
+    <section class="band light tight"><div class="inner">
+      <h2 class="heading" style="font-size:24px;margin-bottom:16px">Or send in a sample file</h2>
       <div class="samples">${samples.map(s => `<button class="sample" onclick="sendSample('${s.id}')"><b>${esc(s.title)}</b>
         <span>${esc(s.summary)}</span><span class="count">${s.files.length} files</span></button>`).join("")}</div>
     </div></section>`;
@@ -294,10 +316,10 @@ async function uploadFiles(files) {
   if (!files.length) return;
   $("#newBtn").hidden = false;
   batch = (await api("/api/uploads", {})).batch_id;
-  $("#app").innerHTML = `<section class="band dark"><div class="inner">
-    <span class="eyebrow">Receiving file</span><h1 class="display" style="font-size:56px">Reading ${files.length} documents</h1>
-    <p class="lede" style="margin-bottom:0">Each file is uploaded, identified and handed to the agent.</p></div></section>
-    <section class="band soft"><div class="inner"><div class="cols">
+  $("#app").innerHTML = `<section class="band dark slim"><div class="inner">
+    <div class="who" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span class="eyebrow">Receiving file</span>
+    <b style="font:500 22px/1.3 var(--display)">Reading ${files.length} documents</b><span class="muted small">Each file is uploaded, identified and handed to the agent.</span></div></div></section>
+    <section class="band soft tight"><div class="inner"><div class="cols">
     <div class="card"><h2>Files</h2><div id="files">${files.map((f, i) => `
       <div class="file" id="f${i}"><span>📄</span><div><div class="name">${esc(f.name)}</div>
       <div class="what">Waiting…</div><div class="bar"><i></i></div></div><span class="muted small">${Math.max(1, Math.round(f.size / 1024))} KB</span></div>`).join("")}</div></div>
@@ -367,9 +389,11 @@ function render() {
 
   const lowDocs = v.documents.filter(d => d.confidence < 0.8 && !rv.confirmed_docs.includes(d.id));
   const unknown = v.uploads.filter(u => !u.recognized);
+  const sentConds = new Set(rv.messages.flatMap(m => m.condition_ids));
+  const asked = flagId => v.conditions.some(c => c.flag_id === flagId && sentConds.has(c.id));
   const attention = missing.map(f => `<div class="att bad"><span class="ic bad">✗</span><div><b>${esc(f.title.replace("Missing document: ", ""))}</b>
-        <span>Missing · requested from broker</span></div></div>`).join("")
-    + lowDocs.map(d => `<div class="att warn"><span class="ic warn">!</span><div><b>${esc(d.label)}</b><span>Hard to read · requested a clearer copy</span></div>
+        <span>Missing · ${asked(f.id) ? "requested from broker" : "in the draft request below"}</span></div></div>`).join("")
+    + lowDocs.map(d => `<div class="att warn"><span class="ic warn">!</span><div><b>${esc(d.label)}</b><span>Hard to read · ${asked(`low_confidence:${d.id}`) ? "clearer copy requested" : "clearer copy in the draft request"}</span></div>
         ${rv.approved ? "" : `<button onclick="openDoc('${d.id}',null,true)">Check & confirm</button>`}</div>`).join("")
     + unknown.map(u => `<div class="att"><span class="ic muted">?</span><div><b>${esc(u.filename)}</b><span>${esc(u.note || "Not recognized")}</span></div></div>`).join("");
   const received = v.documents.filter(d => !lowDocs.includes(d)).map(d =>
@@ -386,12 +410,19 @@ function render() {
     ["Closing date", fmtDate(aps.closing_date)], ["Rate", `${L.contract_rate}%`, `qualifies at ${r.qualifying_rate}%`],
     ["Term · amortization", `${L.term_years} yr · ${L.amortization_years} yr`, esc(L.product)]];
 
-  const msgs = rv.messages.map(m => `<div class="msg"><header><span class="pill ${m.from.startsWith("Agent") ? "auto" : "sent"}">${m.from.startsWith("Agent") ? "Sent automatically by agent" : "Sent by underwriter"}</span>
-      <b>${esc(m.subject)}</b><span class="spacer" style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header><pre>${esc(m.body)}</pre></div>`).join("");
-  const conds = v.conditions.map(c => {
+  const kindLabel = k => k === "document_request" ? "Document request" : "Review report & conditions";
+  const msgs = rv.messages.map(m => `<div class="msg sent"><header><span class="pill sent">✓ Sent</span><b>${kindLabel(m.kind)}</b>
+      <span class="muted">${esc(m.subject)}</span><span style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header>
+      <details><summary>${m.report ? "Show report" : "Show message"}</summary>${m.report
+        ? `<div class="report">${reportStatus(m.status)}${reportSections(m.report)}${reportConditions(m.report)}</div>` : `<pre>${esc(m.body)}</pre>`}</details></div>`).join("");
+  const req = rv.request_draft && !rv.approved ? `<div class="msg"><header><span class="pill">Draft</span><b>Document request</b>
+      <span class="muted">${esc(rv.request_draft.subject)}</span></header><pre>${esc(rv.request_draft.body)}</pre>
+      <div class="msgfoot"><span class="muted small">Plain document request. Can go now, before you finish reviewing.</span>
+      <button class="primary" onclick="sendMsg(this, 'send_request', 'Document request sent to broker')">Send</button></div></div>` : "";
+  const conds = group => v.conditions.filter(c => group === "approval" ? c.raised_by : !c.raised_by).map(c => {
     const cr = rv.condition_reviews[c.id] || {};
     const text = cr.action === "edit" ? cr.text : c.text;
-    return `<div class="cond ${cr.action === "reject" ? "off" : ""}"><span>${c.raised_by ? "" : `<span class="muted small">Standard · </span>`}${esc(text)}</span>
+    return `<div class="cond ${cr.action === "reject" ? "off" : ""}"><span>${esc(text)}</span>
       ${rv.approved ? "" : `<span class="x">${cr.action === "reject" ? `<button class="link" onclick="act({kind:'condition',target:'${c.id}',action:'accept'})">restore</button>`
         : `<button class="link" onclick="condEdit('${c.id}')">edit</button> · <button class="link" onclick="condRemove('${c.id}')">remove</button>`}</span>`}</div>`;
   }).join("");
@@ -407,11 +438,14 @@ function render() {
   <div class="card"><h2>Issues to review <span class="muted">· ${issues.length}</span></h2>${issueHtml}</div>
   <div class="card docs ${docsOpen ? "open" : ""}"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div>
     <button class="toggle" onclick="docsOpen = !docsOpen; this.closest('.docs').classList.toggle('open'); this.textContent = docsOpen ? 'Hide received ▴' : 'Show received ▾'">${docsOpen ? "Hide received ▴" : "Show received ▾"}</button></div>${docsHtml}</div>
-  <div class="card"><h2>Broker</h2>${msgs}
-    ${rv.approved ? "" : `<div class="msg"><header><span class="pill">Draft · waiting for you</span><b>${esc(rv.draft.subject)}</b></header>
-      <div style="padding:8px 12px">${conds}</div></div>
-      <div class="sendbar"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + rv.blockers.map(esc).join(" and ") : "The agent drafted this message. Nothing is sent until you approve."}</span>
-      <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="act({kind:'approve'})">Approve & send to broker</button></div>`}
+  <div class="card"><h2>Broker messages</h2>${req}
+    ${rv.approved ? "" : `<div class="msg"><header><span class="pill">Draft</span><b>Review report & conditions</b><span class="muted">${esc(rv.draft.subject)}</span></header>
+      <div class="report">${reportStatus(rv.draft.status)}${reportSections(rv.draft.report)}
+        <div class="rsec wide"><h4>Conditions before approval</h4>${conds("approval") || `<p class="muted small">None. Only the standard conditions below remain.</p>`}</div>
+        <div class="rsec wide"><h4>Conditions before funding</h4>${conds("funding")}</div></div>
+      <div class="msgfoot"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + rv.blockers.map(esc).join(" and ") : "Drafted by the agent. Nothing goes out until you click Send."}</span>
+      <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="sendMsg(this, 'approve', 'Conditions sent to broker')">Send</button></div></div>`}
+    ${msgs}
   </div>
   <div class="card"><details><summary>Details: figures used, agent steps, audit trail</summary>
     <h2 style="margin-top:14px">Figures used in the ratios</h2>
@@ -425,7 +459,35 @@ function render() {
 }
 
 /* ---------- actions ---------- */
+/* broker report: same structure the email is built from */
+function reportStatus(status) { return `<div class="rstatus">${esc(status)}</div>`; }
+function reportSections(report) {
+  return `<div class="rgrid">${report.filter(sec => sec.rows).map(sec => `<div class="rsec"><h4>${esc(sec.title)}</h4>
+    ${sec.note ? `<p class="muted small">${esc(sec.note)}</p>` : ""}
+    <table>${sec.rows.map(row => `<tr><td>${esc(row.label)}</td><td><b class="${row.status || ""}">${esc(row.value)}${row.status === "ok" ? " ✓" : row.status === "over" ? " ✗" : ""}</b>
+      ${row.note ? `<div class="muted small">${esc(row.note)}</div>` : ""}</td></tr>`).join("")}</table></div>`).join("")}</div>`;
+}
+function reportConditions(report) {
+  return report.filter(sec => sec.items).map(sec => `<div class="rsec wide"><h4>${esc(sec.title)}</h4>${sec.items.length
+    ? `<ol>${sec.items.map(i => `<li>${esc(i.text)}${i.requested_earlier ? ` <span class="muted small">(requested earlier)</span>` : ""}</li>`).join("")}</ol>`
+    : `<p class="muted small">${esc(sec.empty || "None.")}</p>`}</div>`).join("");
+}
+
 async function act(body) { view = await api(`/api/uploads/${batch}/action`, body); render(); }
+
+async function sendMsg(btn, kind, note) {
+  btn.disabled = true; btn.textContent = "Sending…";
+  try { await act({kind}); } catch { btn.disabled = false; btn.textContent = "Send"; return; }
+  toast(`✓ ${note}`);
+}
+
+function toast(text) {
+  const t = document.createElement("div");
+  t.className = "toast"; t.setAttribute("role", "status"); t.textContent = text;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add("show"));
+  setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 300); }, 3200);
+}
 
 function ask(title, {value, multiline, needsValue} = {}) {
   return new Promise(resolve => {
