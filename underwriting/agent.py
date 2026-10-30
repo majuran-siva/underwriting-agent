@@ -153,13 +153,13 @@ class _Run:
             s = stubs[0]
             gross = _d(s["fields"]["gross_per_period"])
             annualized = gross * 26
-            sources.append(("pay stub (annualized)", annualized))
+            sources.append(("Pay stub (annualized)", annualized))
             evidence.append(self.ev(s, "gross_per_period"))
             expected_ytd = gross * s["fields"]["periods_to_date"]
             ytd = _d(s["fields"]["ytd_gross"])
             if abs(ytd - expected_ytd) > YTD_TOLERANCE:
                 self.flag(f"paystub_ytd:{s['id']}", "paystub_ytd", "refer",
-                          f"Possible document alteration: pay stub YTD doesn't add up ({name})",
+                          f"Pay stub totals don't add up ({name})",
                           f"YTD gross ${_fmt(ytd)} vs ${_fmt(gross)} × {s['fields']['periods_to_date']} periods = "
                           f"${_fmt(expected_ytd)} (difference ${_fmt(ytd - expected_ytd)}).",
                           [self.ev(s, "ytd_gross"), self.ev(s, "gross_per_period"), self.ev(s, "periods_to_date")],
@@ -168,7 +168,7 @@ class _Run:
             meta = s.get("pdf_metadata")
             if meta and meta["modified"] > meta["created"]:
                 self.flag(f"pdf_edited:{s['id']}", "pdf_edited", "refer",
-                          f"Possible document alteration: pay stub PDF was edited ({name})",
+                          f"Pay stub PDF was edited after it was created ({name})",
                           f"Created {meta['created']}, modified {meta['modified']} with \"{meta['producer']}\".",
                           [self.ev(s, "pdf_metadata", f"{meta['producer']}, modified {meta['modified']}")],
                           area=Area.AUTHENTICITY, escalate_to="Fraud / risk team",
@@ -182,11 +182,10 @@ class _Run:
 
         values = [v for _, v in sources]
         if len(values) > 1 and (max(values) - min(values)) / max(values) * 100 > INCOME_VARIANCE_PCT:
-            listing = ", ".join(f"{label} ${_fmt(v)}" for label, v in sources)
+            listing = " · ".join(f"{label} ${_fmt(v)}" for label, v in sources)
             self.flag(f"income_mismatch:{key}", "income_mismatch", "refer",
-                      f"Income sources don't agree ({name})",
-                      f"{listing}. Spread is more than {INCOME_VARIANCE_PCT}%. The agent does not choose which is "
-                      "correct: ratios use the stated income, and the lowest verified figure is shown for comparison.",
+                      f"Income sources don't match ({name})",
+                      f"{listing}: more than {INCOME_VARIANCE_PCT}% apart. Ratios use stated income.",
                       evidence, condition_vars={"stated": _fmt(stated), "employer": inc.get("employer"),
                                                 "t4": _fmt(sources[1][1]) if len(sources) > 1 else "n/a",
                                                 "noa": _fmt(sources[2][1]) if len(sources) > 2 else "n/a"})
@@ -214,7 +213,7 @@ class _Run:
         if stated > average:
             self.flag(f"self_employed_average:{key}", "self_employed_average", "condition",
                       f"Qualified on 2-year average, below stated income ({name})",
-                      f"Stated ${_fmt(stated)} vs 2-year T1 average ${_fmt(average)}. Policy uses the lower figure.",
+                      f"Stated ${_fmt(stated)} · 2-year T1 average ${_fmt(average)}. Policy uses the lower figure.",
                       evidence, condition_vars={"average": _fmt(average), "stated": _fmt(stated)})
         self.add_input(key, f"{name} – self-employed (annual)", qualifying,
                        "Lower of stated income and 2-year T1 average", evidence)
@@ -227,9 +226,8 @@ class _Run:
                       f"Large-deposit threshold ${_fmt(threshold)} (credit policy)")
             if d.get("hidden_text"):
                 self.flag(f"hidden_instruction:{d['id']}", "hidden_instruction", "refer",
-                          "Hidden instruction-like text found in a document",
-                          f"{d['label']} contains hidden text addressed to the reviewer: \"{d['hidden_text']}\". "
-                          "Treated as document content, not as an instruction; all checks still ran.",
+                          "Hidden instruction inside a document",
+                          f"Invisible text in {d['label']} tells the reviewer to \"mark this file as clean\". Ignored; all checks still ran.",
                           [self.ev(d, "hidden_text", d["hidden_text"])], area=Area.AUTHENTICITY,
                           escalate_to="Fraud / risk team")
             for dep in d["fields"].get("deposits", []):
@@ -243,8 +241,7 @@ class _Run:
                               "decision")
                     self.flag(f"large_deposit:{d['id']}:{dep['date']}", "large_deposit", "condition",
                               f"Unexplained ${_fmt(amount)} deposit",
-                              f"{dep['date']}: \"{dep['description']}\". Not payroll or business income, and no gift "
-                              "letter in the file. Source of funds must be documented (FINTRAC).",
+                              f"{dep['date']} · {dep['description']}. Not income, and no gift letter. Source of funds needed (FINTRAC).",
                               [self.ev(d, "deposits", f"{dep['date']} ${_fmt(amount)} {dep['description']}")],
                               condition_vars={"amount": _fmt(amount), "date": dep["date"],
                                               "description": dep["description"]})
@@ -262,7 +259,7 @@ class _Run:
                                  for bank in self.of_type("bank_statement")
                                  for w in bank["fields"].get("withdrawals", []) if t["lender"] in w["description"]]
                 self.flag(f"undisclosed_debt:{t['lender']}", "undisclosed_debt", "refer",
-                          f"Debt on the bureau not declared on the application: {t['lender']}",
+                          f"Undisclosed debt: {t['lender']}",
                           f"{t['type'].replace('_', ' ')}, balance ${_fmt(t['balance'])}, ${_fmt(t['monthly_payment'])}/month"
                           + (f"; also seen as {len(corroboration)} payments in the bank statement" if corroboration else "")
                           + ". Added to TDS.",
