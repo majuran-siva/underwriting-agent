@@ -370,7 +370,7 @@ def run(case: dict, overrides: dict | None = None, dismissed: set[str] | None = 
     w.step(f"Drafted {len(conditions)} conditions and a recommendation for the underwriter", "step")
 
     return {
-        "case_id": case["id"], "title": case["title"], "summary": case["summary"],
+        "case_id": case["id"], "title": case["title"], "summary": case["summary"], "pos": case.get("pos"),
         "application": case["application"], "documents": case["documents"],
         "steps": w.steps, "flags": w.flags, "inputs": w.inputs,
         "extracted": [{"doc_id": d["id"], "doc": d["label"], "file": d["filename"], "page": d["page"],

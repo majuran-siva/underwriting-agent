@@ -14,6 +14,12 @@ from underwriting.demo_cases import LENDER
 DOCUMENT_REQUEST_CHECKS = {"missing_document", "low_confidence"}
 
 
+def _addresses(view: dict) -> dict:
+    pos = view.get("pos") or {}
+    return {"to": f"{pos.get('broker', 'Broker')} <{pos.get('email', 'broker@example.com')}>",
+            "from": f"{LENDER} Underwriting <underwriting@mapleridge-mortgage.example>"}
+
+
 def _salutation(view: dict) -> str:
     names = " & ".join(b["name"] for b in view["application"]["borrowers"])
     return f"Re: {names} – {view['application']['property']['address']}"
@@ -24,11 +30,11 @@ def document_request(view: dict) -> dict | None:
     items = [c for c in view["conditions"] if c["raised_by"] in DOCUMENT_REQUEST_CHECKS]
     if not items:
         return None
-    body = ["Hello,", "",
+    body = [f"Hello {(view.get('pos') or {}).get('broker', '').split(' ')[0]},".replace(" ,", ","), "",
             f"We've started our review. To keep it moving, please send the following:", ""]
     body += [f"• {c['text']}" for c in items]
     body += ["", "Our underwriter will follow up with the full review shortly.", "", f"{LENDER} – Underwriting"]
-    return {"subject": _salutation(view) + " – documents needed", "kind": "document_request",
+    return {"subject": _salutation(view) + " – documents needed", "kind": "document_request", **_addresses(view),
             "body": "\n".join(body), "condition_ids": [c["id"] for c in items]}
 
 
@@ -121,11 +127,12 @@ def review_message(view: dict, condition_reviews: dict, already_requested: set[s
     outstanding = report[5]["items"]
     status = (f"Under review – {len(outstanding)} condition{'s' * (len(outstanding) != 1)} to satisfy before approval"
               if outstanding else "Review complete – standard conditions only")
-    lines = ["Hello,", "", "We've completed our first review of this file. The full review and our conditions are below.",
+    lines = [f"Hello {(view.get('pos') or {}).get('broker', '').split(' ')[0]},".replace(" ,", ","), "", "We've completed our first review of this file. The full review and our conditions are below.",
              "", f"Status: {status}"]
     lines += _report_text(report)
     lines += ["", "Please send the outstanding items in one package where possible, and reply with any questions.",
               "", f"{LENDER} – Underwriting"]
     return {"subject": _salutation(view) + " – review and conditions", "kind": "conditions", "status": status,
+            **_addresses(view),
             "report": report, "body": "\n".join(lines),
             "condition_ids": [i["id"] for i in report[5]["items"] + report[6]["items"]]}

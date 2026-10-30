@@ -91,7 +91,12 @@ def samples():
     for c in CASES:
         folder = SAMPLES / c["id"]
         files = sorted(p.name for p in folder.iterdir()) if folder.exists() else []
-        out.append({"id": c["id"], "title": c["title"], "summary": c["summary"], "files": files})
+        app = c["application"]
+        out.append({"id": c["id"], "title": c["title"], "summary": c["summary"], "files": files, "pos": c["pos"],
+                    "borrowers": [b["name"] for b in app["borrowers"]], "address": app["property"]["address"],
+                    "loan_amount": app["loan"]["amount"], "purchase_price": app["property"]["purchase_price"],
+                    "income_type": "Self-employed" if any(i["type"] == "self_employed" for b in app["borrowers"]
+                                                          for i in b["incomes"]) else "Salaried"})
     return out
 
 

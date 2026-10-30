@@ -294,5 +294,24 @@ CASES: list[dict] = [
 ]
 
 
+# How each file arrived: submitted by a (fictional) broker through the point-of-sale system.
+POS = {
+    "case01": {"app_no": "MR-26-10412", "broker": "Jordan Patel", "brokerage": "Northshore Mortgage Group",
+               "email": "jordan.patel@northshore-mortgage.example", "received_min_ago": 4},
+    "case02": {"app_no": "MR-26-10415", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
+               "email": "s.tremblay@keystone-home.example", "received_min_ago": 11},
+    "case03": {"app_no": "MR-26-10398", "broker": "Ravi Menon", "brokerage": "Lakeside Mortgage Partners",
+               "email": "ravi@lakeside-mortgage.example", "received_min_ago": 26},
+    "case04": {"app_no": "MR-26-10391", "broker": "Claire Dubois", "brokerage": "Northshore Mortgage Group",
+               "email": "claire.dubois@northshore-mortgage.example", "received_min_ago": 38},
+    "case05": {"app_no": "MR-26-10377", "broker": "Owen MacLeod", "brokerage": "Harbour Point Mortgages",
+               "email": "owen.macleod@harbourpoint.example", "received_min_ago": 52},
+    "case06": {"app_no": "MR-26-10369", "broker": "Simone Tremblay", "brokerage": "Keystone Home Financing",
+               "email": "s.tremblay@keystone-home.example", "received_min_ago": 75},
+}
+for _case in CASES:
+    _case["pos"] = POS[_case["id"]]
+
+
 def get_case(case_id: str) -> dict:
     return next(c for c in CASES if c["id"] == case_id)

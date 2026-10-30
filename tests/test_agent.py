@@ -167,3 +167,12 @@ def test_broker_report_leaves_out_internal_notes(client):
     after = client.post(f"/api/uploads/{batch}/action", json={"kind": "condition", "target": cid, "action": "reject",
                                                                "reason": "Not relevant to this file"}).json()
     assert cid not in after["review"]["draft"]["condition_ids"]
+
+
+def test_messages_are_addressed_to_the_submitting_broker(client):
+    _, v = upload_case(client, "case06")
+    for m in (v["review"]["request_draft"], v["review"]["draft"]):
+        assert m["to"] == "Simone Tremblay <s.tremblay@keystone-home.example>"
+        assert m["body"].startswith("Hello Simone,")
+    samples = client.get("/api/samples").json()
+    assert all(s["pos"]["app_no"].startswith("MR-") for s in samples)
