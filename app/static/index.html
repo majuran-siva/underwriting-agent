@@ -107,6 +107,13 @@ button.link:hover { background: none; text-decoration: underline; }
 .issue button.link { background: none; }
 .cardhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
 .cardhead h2 { margin: 0; }
+.cardhead .counts { margin-right: auto; }
+.docs .cardhead { margin-bottom: 0; }
+.docs .attention { margin: 16px 0 0; }
+.docs .docgrid { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline-light); }
+.docs.open .docgrid { display: grid; }
+.toggle { background: none; color: var(--link); padding: 4px 0; }
+.toggle:hover { background: none; text-decoration: underline; }
 .counts { display: flex; gap: 8px; flex-wrap: wrap; }
 .count { font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); background: var(--surface-soft); }
 .count.ok { color: #00795b; } .count.warn { color: #a35700; background: #fff4e5; } .count.bad { color: var(--deep-red); background: #fdeceb; }
@@ -123,8 +130,13 @@ button.link:hover { background: none; text-decoration: underline; }
 .docchip { display: flex; align-items: center; gap: 10px; text-align: left; background: none; border-radius: var(--r-md); padding: 8px 10px; font-weight: 500; font-size: 14px; }
 .docchip:hover { background: var(--surface-soft); }
 .status { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
-.status .who { color: var(--on-dark-mute); font-size: 14px; }
-.status .headline { font: 500 32px/1.19 var(--display); letter-spacing: -.5px; margin: 6px 0 10px; }
+.status .who { color: var(--on-dark-mute); font-size: 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.status .who b { color: #fff; font: 500 20px/1.3 var(--display); letter-spacing: -.2px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 32px; margin: 18px 0 0; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 12px; color: var(--on-dark-mute); }
+.facts dd { margin: 2px 0 0; font: 500 18px/1.3 var(--display); letter-spacing: -.2px; color: #fff; }
+.facts dd small { font: 400 13px var(--display); color: var(--on-dark-mute); margin-left: 4px; }
 .state { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); }
 .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .state.good { background: rgba(0,168,126,.16); color: #3fd6ad; }
@@ -193,7 +205,8 @@ select, input, textarea { font: inherit; width: 100%; padding: 14px 16px; border
   .display { font-size: 44px; letter-spacing: -.8px; }
   .band.slim { padding: 24px 16px; }
   .status { grid-template-columns: 1fr; gap: 16px; }
-  .status .headline { font-size: 26px; }
+  .facts { gap: 8px 20px; }
+  .facts dd { font-size: 16px; }
   .cols, .viewer, .issues-grid, .attention { grid-template-columns: 1fr; }
   .card, dialog .body { padding: 20px; }
   .tile { min-width: 0; flex: 1; padding: 16px; }
@@ -217,7 +230,7 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money = v => "$" + Number(v).toLocaleString("en-CA", {maximumFractionDigits: 0});
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-let view = null, batch = null, samples = [];
+let view = null, batch = null, samples = [], docsOpen = false;
 
 async function api(path, body) {
   const r = await fetch(path, {method: body === undefined ? "GET" : "POST",
@@ -365,6 +378,13 @@ function render() {
     lowDocs.length ? `<span class="count warn">! ${lowDocs.length} hard to read</span>` : "",
     missing.length ? `<span class="count bad">✗ ${missing.length} missing</span>` : ""].join("");
   const docsHtml = `${attention ? `<div class="attention">${attention}</div>` : ""}<div class="docgrid">${received}</div>`;
+  const aps = v.documents.find(d => d.type === "purchase_agreement")?.fields || {};
+  const L = a.loan, P = a.property;
+  const fmtDate = dt => dt ? new Date(dt + "T12:00").toLocaleDateString("en-CA", {month: "short", day: "numeric", year: "numeric"}) : "Not provided";
+  const facts = [["Loan amount", money(L.amount)], ["Purchase price", money(P.purchase_price)],
+    ["Down payment", money(L.down_payment), `${Math.round(L.down_payment / P.purchase_price * 100)}%`],
+    ["Closing date", fmtDate(aps.closing_date)], ["Rate", `${L.contract_rate}%`, `qualifies at ${r.qualifying_rate}%`],
+    ["Term · amortization", `${L.term_years} yr · ${L.amortization_years} yr`, esc(L.product)]];
 
   const msgs = rv.messages.map(m => `<div class="msg"><header><span class="pill ${m.from.startsWith("Agent") ? "auto" : "sent"}">${m.from.startsWith("Agent") ? "Sent automatically by agent" : "Sent by underwriter"}</span>
       <b>${esc(m.subject)}</b><span class="spacer" style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header><pre>${esc(m.body)}</pre></div>`).join("");
@@ -378,13 +398,15 @@ function render() {
 
   $("#app").innerHTML = `
   <section class="band dark slim"><div class="inner status">
-    <div><div class="who">${esc(a.borrowers.map(b => b.name).join(" & "))} · ${esc(a.property.address)} · ${money(a.loan.amount)}</div>
-      <div class="headline">${esc(title)}</div><span class="state ${tone}">${esc(sub)}</span></div>
+    <div><div class="who"><b>${esc(a.borrowers.map(b => b.name).join(" & "))}</b><span>${esc(a.property.address)}</span>
+        <span class="state ${tone}">${esc(title)}</span></div>
+      <dl class="facts">${facts.map(([k, val, note]) => `<div><dt>${k}</dt><dd>${val}${note ? `<small>${note}</small>` : ""}</dd></div>`).join("")}</dl></div>
     <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div>
   </div></section>
   <section class="band soft tight"><div class="inner">
   <div class="card"><h2>Issues to review <span class="muted">· ${issues.length}</span></h2>${issueHtml}</div>
-  <div class="card"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div></div>${docsHtml}</div>
+  <div class="card docs ${docsOpen ? "open" : ""}"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div>
+    <button class="toggle" onclick="docsOpen = !docsOpen; this.closest('.docs').classList.toggle('open'); this.textContent = docsOpen ? 'Hide received ▴' : 'Show received ▾'">${docsOpen ? "Hide received ▴" : "Show received ▾"}</button></div>${docsHtml}</div>
   <div class="card"><h2>Broker</h2>${msgs}
     ${rv.approved ? "" : `<div class="msg"><header><span class="pill">Draft · waiting for you</span><b>${esc(rv.draft.subject)}</b></header>
       <div style="padding:8px 12px">${conds}</div></div>
