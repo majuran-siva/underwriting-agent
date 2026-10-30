@@ -412,11 +412,11 @@ function render() {
       <p>${esc(f.detail)}</p>
       <div class="row">${ev ? `<button class="link" onclick="openDoc('${ev.doc_id}','${esc(ev.field)}')">View source →</button>` : ""}
       <span class="grow"></span>
-      ${done ? `<span class="small muted">${done.action === "reject" ? "Marked not an issue" : done.action === "escalate" ? `Escalated to ${esc(f.escalate_to)}` : "✓ Confirmed"}</span>
+      ${done ? `<span class="small muted">${done.action === "reject" ? "✕ Dismissed" : done.action === "escalate" ? `Escalated to ${esc(f.escalate_to)}` : "✓ Kept as valid issue"}</span>
         ${rv.approved ? "" : `<button class="link" onclick="act({kind:'flag',target:'${esc(f.id)}',action:'undo'})">undo</button>`}`
       : `${f.escalate_to ? `<button onclick="act({kind:'flag',target:'${esc(f.id)}',action:'escalate'})">Escalate</button>` : ""}
-         <button onclick="notIssue('${esc(f.id)}')">Not an issue</button>
-         <button class="dark" onclick="act({kind:'flag',target:'${esc(f.id)}',action:'confirm'})">✓ Confirm</button>`}</div></div>`;
+         <button onclick="notIssue('${esc(f.id)}')">Dismiss</button>
+         <button class="dark" onclick="act({kind:'flag',target:'${esc(f.id)}',action:'confirm'})">✓ Valid issue</button>`}</div></div>`;
   }).join("")}</div>` : `<p class="muted" style="margin:0">No issues found. Income, deposits, debts and documents all line up.</p>`;
 
   const lowDocs = v.documents.filter(d => d.confidence < 0.8 && !rv.confirmed_docs.includes(d.id));
@@ -472,25 +472,25 @@ function render() {
   if (!tab) tab = tabByBatch[batch] || (unreviewed.length ? "issues" : lowDocs.length ? "docs" : rv.approved ? "broker" : "file");
   const blockerHtml = rv.blockers.map(b => tabLink(b.includes("issue") ? "issues" : "docs", esc(b))).join(" and ");
   const tabs = [
-    {id: "issues", label: "Issues to review", badge: unreviewed.length ? `${unreviewed.length} open` : issues.length ? "✓" : "None",
+    {id: "issues", label: "Issues to Review", badge: unreviewed.length ? `${unreviewed.length} open` : issues.length ? "✓" : "None",
      tone: unreviewed.some(f => f.area === "authenticity") ? "crit" : unreviewed.length ? "attn" : "ok"},
     {id: "docs", label: "Documents", badge: needsDocs ? `${needsDocs} need attention` : `✓ ${v.documents.length}`, tone: needsDocs ? "attn" : "ok"},
-    {id: "file", label: "Loan file", badge: `${openCount} outstanding`, tone: openCount ? "attn" : "ok"},
-    {id: "broker", label: "Broker communication", badge: rv.approved ? "✓ Sent" : "Draft ready", tone: rv.approved ? "ok" : ""},
+    {id: "file", label: "Loan File", badge: `${openCount} outstanding`, tone: openCount ? "attn" : "ok"},
+    {id: "broker", label: "Broker Communication", badge: rv.approved ? "✓ Sent" : "Draft ready", tone: rv.approved ? "ok" : ""},
     {id: "activity", label: "Activity"},
   ];
   const panels = {
-    issues: `<div class="card"><h2>Issues to review <span class="muted">· ${issues.length}</span></h2>${issueHtml}
+    issues: `<div class="card"><h2>Issues to Review <span class="muted">· ${issues.length}</span></h2>${issueHtml}
       ${issues.length && !unreviewed.length ? `<p class="small" style="margin:16px 0 0">All issues reviewed. Next: ${tabLink("file", "check the loan file")} or ${tabLink("broker", "send to the broker")}.</p>` : ""}</div>`,
     docs: `<div class="card docs open"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div></div>${docsHtml}
       ${needsDocs ? `<p class="small" style="margin:16px 0 0">Missing and hard-to-read documents go out in the ${tabLink("broker", "document request")}.</p>` : ""}</div>`,
-    file: `<div class="card"><div class="cardhead"><h2>Loan file</h2><div class="counts"><span class="count bad">${openCount} outstanding</span><span class="count ok">${metCount} fulfilled</span></div></div>
+    file: `<div class="card"><div class="cardhead"><h2>Loan File</h2><div class="counts"><span class="count bad">${openCount} outstanding</span><span class="count ok">${metCount} fulfilled</span></div></div>
       <div class="report">${reportSections(rv.draft.report)}
         <div class="rsec wide"><h4>Conditions before approval</h4>${fileConds.map(condRow).join("") || `<p class="small">None. Only the standard conditions remain.</p>`}</div>
         <div class="rsec wide"><h4>Conditions before funding</h4>${fundConds.map(condRow).join("")}</div></div></div>`,
-    broker: `<div class="card"><h2>Broker communication</h2>${req}
+    broker: `<div class="card"><h2>Broker Communication</h2>${req}
       ${rv.approved ? "" : `<div class="msg"><header><span class="pill">Draft</span><b>Review report & conditions</b><span class="muted">${esc(rv.draft.subject)}</span></header>
-        <div class="msgsum"><b>${esc(rv.draft.status)}</b><span>To ${esc(rv.draft.to.split(" <")[0])} · includes the file summary, qualification, ${openCount} outstanding${metCount ? ` and ${metCount} fulfilled` : ""} condition${openCount + metCount === 1 ? "" : "s"}. Conditions are edited in the ${tabLink("file", "Loan file")} tab.</span></div>
+        <div class="msgsum"><b>${esc(rv.draft.status)}</b><span>To ${esc(rv.draft.to.split(" <")[0])} · includes the file summary, qualification, ${openCount} outstanding${metCount ? ` and ${metCount} fulfilled` : ""} condition${openCount + metCount === 1 ? "" : "s"}. Conditions are edited in the ${tabLink("file", "Loan File")} tab.</span></div>
         <div class="msgfoot"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + blockerHtml : "Nothing goes out until you send it."}</span>
         <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="previewMsg('approve')">Preview & send</button></div></div>`}
       ${msgs || (rv.approved ? "" : `<p class="small muted" style="margin:4px 0 0">Nothing sent yet.</p>`)}</div>`,
@@ -578,7 +578,7 @@ function ask(title, {value, multiline, needsValue} = {}) {
       resolve({value: needsValue ? $("#dv").value : null, reason: $("#dr").value + (n ? ": " + n : "")}); };
   });
 }
-async function notIssue(id) { const a = await ask("Not an issue"); if (a) act({kind: "flag", target: id, action: "reject", reason: a.reason}); }
+async function notIssue(id) { const a = await ask("Dismiss this issue"); if (a) act({kind: "flag", target: id, action: "reject", reason: a.reason}); }
 async function editInput(key, label, value) {
   const a = await ask(`Edit: ${label}`, {value, needsValue: true});
   if (a) act({kind: "override", target: key, value: a.value.replace(/[$,\s]/g, ""), reason: a.reason});
