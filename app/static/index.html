@@ -93,19 +93,22 @@ button.link:hover { background: none; text-decoration: underline; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* dashboard hero */
-.status { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-end; justify-content: space-between; }
+.band.slim { padding: 28px 32px; }
+.band.tight { padding-top: 28px; padding-bottom: 40px; }
+.doc button.link { text-align: left; }
+.status { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
 .status .who { color: var(--on-dark-mute); font-size: 14px; }
-.status .headline { font: 500 48px/1.1 var(--display); letter-spacing: -1px; margin: 14px 0 10px; max-width: 640px; }
+.status .headline { font: 500 32px/1.19 var(--display); letter-spacing: -.5px; margin: 6px 0 10px; }
 .state { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); }
 .state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .state.good { background: rgba(0,168,126,.16); color: #3fd6ad; }
 .state.attn { background: rgba(236,126,0,.16); color: #ffa94d; }
 .state.bad { background: rgba(226,59,74,.18); color: #ff6b78; }
-.tiles { display: flex; gap: 12px; flex-wrap: wrap; }
-.tile { border-radius: var(--r-lg); padding: 20px 24px; min-width: 150px; background: var(--surface-elevated); }
-.tile small { display: block; font-size: 13px; color: var(--on-dark-mute); margin-bottom: 6px; }
-.tile b { font: 500 36px/1 var(--display); letter-spacing: -.8px; }
-.tile .lim { display: block; font-size: 12px; margin-top: 8px; color: #3fd6ad; font-weight: 600; }
+.tiles { display: flex; gap: 10px; }
+.tile { border-radius: var(--r-md); padding: 14px 18px; min-width: 128px; background: var(--surface-elevated); }
+.tile small { display: block; font-size: 12px; color: var(--on-dark-mute); margin-bottom: 4px; }
+.tile b { font: 500 26px/1 var(--display); letter-spacing: -.5px; }
+.tile .lim { display: block; font-size: 12px; margin-top: 6px; color: #3fd6ad; font-weight: 600; }
 .tile.over b { color: #ff6b78; }
 .tile.over .lim { color: #ff6b78; }
 
@@ -162,11 +165,13 @@ select, input, textarea { font: inherit; width: 100%; padding: 14px 16px; border
   header { padding: 0 16px; }
   header .org, .tag { display: none; }
   .display { font-size: 44px; letter-spacing: -.8px; }
-  .status .headline { font-size: 34px; }
+  .band.slim { padding: 24px 16px; }
+  .status { grid-template-columns: 1fr; gap: 16px; }
+  .status .headline { font-size: 26px; }
   .cols, .viewer { grid-template-columns: 1fr; }
   .card, dialog .body { padding: 20px; }
   .tile { min-width: 0; flex: 1; padding: 16px; }
-  .tile b { font-size: 26px; }
+  .tile b { font-size: 22px; }
   .viewer iframe, .viewer img { height: 360px; }
 }
 </style>
@@ -340,12 +345,12 @@ function render() {
   }).join("");
 
   $("#app").innerHTML = `
-  <section class="band dark"><div class="inner status">
+  <section class="band dark slim"><div class="inner status">
     <div><div class="who">${esc(a.borrowers.map(b => b.name).join(" & "))} · ${esc(a.property.address)} · ${money(a.loan.amount)}</div>
       <div class="headline">${esc(title)}</div><span class="state ${tone}">${esc(sub)}</span></div>
     <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div>
   </div></section>
-  <section class="band soft"><div class="inner">
+  <section class="band soft tight"><div class="inner">
   <div class="cols">
     <div class="card"><h2>Issues found (${issues.length})</h2>${issueHtml}</div>
     <div class="card"><h2>Documents · ${v.documents.length} received${missing.length ? `, ${missing.length} missing` : ""}</h2>${docsHtml}</div>
