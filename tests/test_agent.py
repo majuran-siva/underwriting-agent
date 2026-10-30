@@ -196,3 +196,14 @@ def test_sent_file_appears_first_in_reviewed_list(client):
     reviewed = client.get("/api/reviewed").json()
     assert reviewed[0]["app_no"] == "MR-26-10412" and reviewed[0]["reviewed_by"] == "You"
     assert {r["source"] for r in reviewed} <= {"Filogix", "Lendesk", "Velocity"}
+
+
+def test_declining_a_document_read_unblocks_sending_but_keeps_it_flagged(client):
+    batch, v = upload_case(client, "case06")
+    act = lambda body: client.post(f"/api/uploads/{batch}/action", json=body)
+    for f in v["flags"]:
+        if f["check"] not in ("missing_document", "low_confidence"):
+            act({"kind": "flag", "target": f["id"], "action": "confirm"})
+    r = act({"kind": "confirm_doc", "target": "bank", "action": "decline", "reason": "Amounts illegible"}).json()
+    assert r["review"]["declined_docs"] == ["bank"] and r["review"]["blockers"] == []
+    assert any("legible copy" in c["text"] for c in r["conditions"])

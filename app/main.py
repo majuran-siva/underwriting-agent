@@ -68,12 +68,12 @@ def _view(batch_id: str) -> dict:
     requested = {cid for m in st["messages"] for cid in m["condition_ids"]}
     open_flags = [f["id"] for f in result["flags"] if f["id"] not in st["flag_reviews"]
                   and f["check"] not in broker.DOCUMENT_REQUEST_CHECKS]   # those are handled by requesting the document
-    unconfirmed = [d for d in low_conf if d not in st["confirmed_docs"]]
+    unconfirmed = [d for d in low_conf if d not in st["confirmed_docs"] and d not in st["declined_docs"]]
     blockers = ([f"review {len(open_flags)} issue{'s' * (len(open_flags) != 1)}"] if open_flags else []) + \
                ([f"confirm {len(unconfirmed)} hard-to-read document{'s' * (len(unconfirmed) != 1)}"] if unconfirmed else [])
     return {**result, "batch_id": batch_id, "uploads": st["uploads"], "review": {
         "flag_reviews": st["flag_reviews"], "condition_reviews": st["condition_reviews"],
-        "confirmed_docs": sorted(st["confirmed_docs"]), "overrides": st["overrides"], "audit": st["audit"],
+        "confirmed_docs": sorted(st["confirmed_docs"]), "declined_docs": sorted(st["declined_docs"]), "overrides": st["overrides"], "audit": st["audit"],
         "approved": st["approved"], "blockers": blockers, "reason_codes": REASON_CODES,
         "messages": st["messages"], "draft": broker.review_message(result, st["condition_reviews"], requested),
         "request_draft": None if st["request_sent"] else broker.document_request(result)}}
@@ -123,7 +123,7 @@ def reviewed():
 def new_batch():
     batch_id = f"b{len(BATCHES) + 1:04d}"
     BATCHES[batch_id] = {"uploads": [], "filenames": set(), "case_id": None, "overrides": {}, "dismissed": set(),
-                         "flag_reviews": {}, "condition_reviews": {}, "confirmed_docs": set(), "audit": [],
+                         "flag_reviews": {}, "condition_reviews": {}, "confirmed_docs": set(), "declined_docs": set(), "audit": [],
                          "messages": [], "approved": None, "request_sent": False}
     return {"batch_id": batch_id}
 
@@ -216,9 +216,16 @@ def act(batch_id: str, a: Action):
             raise HTTPException(422, "Value must be a number")
         st["overrides"][a.target] = {"value": a.value, "reason": a.reason}
         _log(st, "Underwriter", f"Changed {a.target} to {a.value} ({a.reason}); ratios recalculated")
-    elif a.kind == "confirm_doc":
-        st["confirmed_docs"].add(a.target)
-        _log(st, "Underwriter", f"Confirmed hard-to-read document {a.target} against the source")
+    elif a.kind == "confirm_doc":   # action: approve (values match) | decline (they don't; clearer copy stays required)
+        if a.action == "decline":
+            st["declined_docs"].add(a.target)
+            st["confirmed_docs"].discard(a.target)
+            _log(st, "Underwriter", f"Declined the agent's read of {a.target}; clearer copy required"
+                 + (f" ({a.reason})" if a.reason else ""))
+        else:
+            st["confirmed_docs"].add(a.target)
+            st["declined_docs"].discard(a.target)
+            _log(st, "Underwriter", f"Approved the agent's read of {a.target} against the source")
     elif a.kind == "send_request":
         request = _view(batch_id)["review"]["request_draft"]
         if not request:
