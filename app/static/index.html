@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Underwriting Agent</title>
+<style>
+:root {
+  --bg: #f6f7f9; --panel: #ffffff; --ink: #1b1f24; --muted: #5d6673; --line: #e2e5ea;
+  --accent: #2357d9; --accent-ink: #fff; --ok: #1a7f4b; --ok-bg: #e6f4ec; --warn: #9a6200; --warn-bg: #fdf3e1;
+  --bad: #b42318; --bad-bg: #fdecea; --info-bg: #eef3ff; --hl: #fff2a8;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111418; --panel: #1a1e24; --ink: #e7eaee; --muted: #9aa3ae; --line: #2c323a;
+    --accent: #6f9bff; --accent-ink: #0d1117; --ok: #57c78b; --ok-bg: #16291f; --warn: #e7b45c; --warn-bg: #2d2412;
+    --bad: #ff8a80; --bad-bg: #331a18; --info-bg: #1b2540; --hl: #5a4d12; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+header { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { font-size: 16px; margin: 0; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--warn-bg); color: var(--warn); font-weight: 600; letter-spacing: .03em; }
+.muted { color: var(--muted); }
+main { display: grid; grid-template-columns: 300px 1fr; min-height: calc(100vh - 50px); }
+aside { border-right: 1px solid var(--line); padding: 16px; background: var(--panel); }
+aside h2, section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+.case { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; background: var(--panel); }
+.case:hover, .case.active { border-color: var(--accent); }
+.case b { display: block; font-size: 13px; }
+.case small { color: var(--muted); }
+#content { padding: 20px; overflow: auto; }
+.empty { color: var(--muted); padding: 60px 0; text-align: center; }
+section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.link { border: 0; padding: 0; color: var(--accent); background: none; text-decoration: underline; font-size: 12px; }
+.timeline { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow: auto; }
+.timeline li { padding: 6px 0 6px 22px; position: relative; border-bottom: 1px dashed var(--line); animation: fade .25s ease; }
+.timeline li::before { content: "●"; position: absolute; left: 4px; top: 6px; font-size: 10px; color: var(--muted); }
+.timeline li.decision::before { content: "◆"; color: var(--accent); }
+.timeline li.flag::before { content: "▲"; color: var(--bad); }
+.timeline li.check::before { content: "✓"; color: var(--ok); }
+.timeline li.calc::before { content: "∑"; color: var(--accent); }
+.timeline .detail { display: block; font-size: 12px; color: var(--muted); }
+@keyframes fade { from { opacity: 0; transform: translateY(-3px); } }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; min-width: 110px; }
+.stat b { display: block; font-size: 18px; }
+.stat.over b { color: var(--bad); }
+.stat small { color: var(--muted); }
+.rec { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 600; }
+.rec.approve { background: var(--ok-bg); color: var(--ok); }
+.rec.approve_with_conditions { background: var(--info-bg); color: var(--accent); }
+.rec.refer_for_review { background: var(--warn-bg); color: var(--warn); }
+.rec.decline { background: var(--bad-bg); color: var(--bad); }
+.flag { border: 1px solid var(--line); border-left: 4px solid var(--warn); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+.flag.refer, .flag.decline { border-left-color: var(--bad); }
+.flag.done { opacity: .7; }
+.flag h3 { font-size: 14px; margin: 0 0 4px; }
+.flag p { margin: 0 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip { font-size: 12px; border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; cursor: pointer; background: var(--bg); color: var(--ink); }
+.chip:hover { border-color: var(--accent); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.badge { font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 600; }
+.badge.refer, .badge.decline { background: var(--bad-bg); color: var(--bad); }
+.badge.condition { background: var(--warn-bg); color: var(--warn); }
+.badge.ok { background: var(--ok-bg); color: var(--ok); }
+.badge.draft { background: var(--info-bg); color: var(--accent); }
+table { width: 100%; border-collapse: collapse; }
+td, th { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; }
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cond { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.cond.rejected .text { text-decoration: line-through; color: var(--muted); }
+.cond .trigger { font-size: 12px; color: var(--muted); }
+.approve-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; bottom: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.blockers { color: var(--warn); font-size: 13px; }
+.audit { font-size: 12px; max-height: 220px; overflow: auto; }
+.audit div { padding: 3px 0; border-bottom: 1px dashed var(--line); }
+dialog { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); width: min(560px, calc(100vw - 32px)); padding: 0; }
+dialog::backdrop { background: rgba(0,0,0,.35); }
+dialog .body { padding: 16px; }
+dialog h3 { margin: 0 0 8px; }
+.docpage { border: 1px solid var(--line); border-radius: 6px; padding: 14px; background: var(--bg); font-family: ui-monospace, Menlo, monospace; font-size: 12px; position: relative; }
+.docpage .wm { position: absolute; right: 10px; top: 8px; color: var(--bad); font-weight: 700; font-size: 10px; letter-spacing: .1em; }
+.docpage .row { padding: 2px 4px; border-radius: 3px; }
+.docpage .row.hl { background: var(--hl); outline: 1px solid var(--warn); }
+label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 3px; }
+select, input, textarea { font: inherit; width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.timer { font-variant-numeric: tabular-nums; }
+@media (max-width: 860px) {
+  main { grid-template-columns: 1fr; }
+  aside { border-right: 0; border-bottom: 1px solid var(--line); }
+  .grid2 { grid-template-columns: 1fr; }
+  #content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Underwriting Agent</h1>
+  <span class="muted">Maple Ridge Mortgage Co. · first review</span>
+  <span class="tag">SYNTHETIC DATA – PROTOTYPE</span>
+</header>
+<main>
+  <aside>
+    <h2>Incoming files</h2>
+    <div id="cases"></div>
+    <p class="muted" style="font-size:12px">Clicking a file simulates a broker submission arriving. The agent starts on arrival.</p>
+  </aside>
+  <div id="content"><div class="empty">Pick an incoming file to submit it to the agent.</div></div>
+</main>
+
+<dialog id="dlg"><div class="body" id="dlgBody"></div></dialog>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = v => "$" + Number(v).toLocaleString("en-CA", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const REC = {approve: "Approve", approve_with_conditions: "Approve with conditions", refer_for_review: "Refer for review", decline: "Decline"};
+let current = null, view = null;
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)} : {method: "GET"});
+  const data = await r.json();
+  if (!r.ok) { alert(data.detail || "Request failed"); throw new Error(data.detail); }
+  return data;
+}
+
+async function loadCases() {
+  const cases = await api("/api/cases");
+  $("#cases").innerHTML = cases.map(c => `<div class="case" data-id="${c.id}"><b>${esc(c.title)}</b><small>${c.files} files · ${esc(c.summary)}</small></div>`).join("");
+  document.querySelectorAll(".case").forEach(el => el.onclick = () => submit(el.dataset.id));
+}
+
+async function submit(id) {
+  current = id;
+  document.querySelectorAll(".case").forEach(el => el.classList.toggle("active", el.dataset.id === id));
+  const t0 = performance.now();
+  $("#content").innerHTML = `<section class="panel"><h2>Agent working <span class="timer" id="timer"></span></h2><ul class="timeline" id="tl"></ul></section>`;
+  const tick = setInterval(() => $("#timer") && ($("#timer").textContent = `· ${((performance.now() - t0) / 1000).toFixed(1)}s`), 100);
+  const data = await api(`/api/cases/${id}/run`, {});
+  for (const s of data.steps) {   // replay the agent's steps so the work is visible
+    $("#tl").insertAdjacentHTML("beforeend", stepHtml(s));
+    $("#tl").scrollTop = 1e6;
+    await new Promise(r => setTimeout(r, s.kind === "flag" ? 380 : 170));
+  }
+  clearInterval(tick);
+  view = data; render();
+}
+
+const stepHtml = s => `<li class="${s.kind}">${esc(s.text)}${s.detail ? `<span class="detail">${esc(s.detail)}</span>` : ""}</li>`;
+
+function evidenceChips(evs) {
+  return `<div class="chips">${evs.map(e => e.doc_id
+    ? `<button class="chip" onclick="openDoc('${e.doc_id}','${esc(e.field)}')">🔗 ${esc(e.doc)} · p.${e.page} · ${esc(e.field)}: ${esc(e.value)}</button>`
+    : `<span class="chip">∑ ${esc(e.field)}: ${esc(e.value)}</span>`).join("")}</div>`;
+}
+
+function render() {
+  const v = view, rv = v.review, r = v.ratios, app = v.application;
+  const over = (val, lim) => Number(val) > lim ? "over" : "";
+  const flags = v.flags.map(f => {
+    const done = rv.flag_reviews[f.id];
+    return `<div class="flag ${f.severity} ${done ? "done" : ""}">
+      <div class="actions" style="justify-content:space-between"><h3>${esc(f.title)}</h3>
+        <span class="badge ${f.severity}">${f.severity === "condition" ? "Condition" : f.severity === "decline" ? "Outside policy" : "Needs judgment"}</span></div>
+      <p>${esc(f.detail)}</p>${evidenceChips(f.evidence)}
+      ${done ? `<div class="muted">✓ ${esc(done.action)}${done.reason ? " – " + esc(done.reason) : ""} ${rv.approved ? "" : `<button class="link" onclick="flagAct('${f.id}','undo')">change</button>`}</div>`
+      : `<div class="actions"><button onclick="flagAct('${f.id}','confirm')">Confirm</button>
+         <button onclick="flagAct('${f.id}','reject')">Reject as false alarm</button>
+         ${f.escalate_to ? `<button onclick="flagAct('${f.id}','escalate')">Escalate to ${esc(f.escalate_to)}</button>` : ""}</div>`}
+    </div>`;
+  }).join("") || `<p class="muted">No issues found. The agent checked every document and found nothing to flag.</p>`;
+
+  const inputs = v.inputs.map(i => `<tr><td>${esc(i.label)}<div class="muted" style="font-size:12px">${esc(i.basis)}</div>${evidenceChips(i.evidence)}</td>
+    <td class="num">${money(i.value)}${i.override ? `<div class="muted" style="font-size:12px">agent: ${money(i.agent_value)}<br>${esc(i.override.reason)}</div>` : ""}</td>
+    <td>${rv.approved ? "" : `<button onclick="editInput('${esc(i.key)}','${esc(i.label)}','${i.value}')">Edit</button>`}</td></tr>`).join("");
+
+  const conds = v.conditions.map(c => {
+    const cr = rv.condition_reviews[c.id] || {};
+    const text = cr.action === "edit" ? cr.text : c.text;
+    const sent = rv.approved && rv.approved.conditions.includes(c.id);
+    return `<div class="cond ${cr.action === "reject" ? "rejected" : ""}">
+      <div class="actions" style="justify-content:space-between"><b>${esc(c.id)}</b>
+        <span class="badge ${sent ? "ok" : "draft"}">${sent ? "Approved" : cr.action ? cr.action === "accept" ? "Accepted" : cr.action === "edit" ? "Edited" : "Rejected" : "Agent draft"}</span></div>
+      <div class="text">${esc(text)}</div><div class="trigger">Trigger: ${esc(c.trigger)}${cr.reason ? " · " + esc(cr.reason) : ""}</div>
+      ${rv.approved ? "" : `<div class="actions" style="margin-top:6px"><button onclick="condAct('${c.id}','accept')">Accept</button>
+        <button onclick="condEdit('${c.id}')">Edit</button><button onclick="condAct('${c.id}','reject')">Reject</button></div>`}
+    </div>`;
+  }).join("");
+
+  const lowDocs = v.documents.filter(d => d.confidence < 0.8);
+  const docs = v.documents.map(d => `<tr><td><button class="link" onclick="openDoc('${d.id}')">${esc(d.label)}</button></td>
+    <td class="muted">${esc(d.filename)} p.${d.page}</td>
+    <td>${d.confidence < 0.8 ? (rv.confirmed_docs.includes(d.id) ? `<span class="badge ok">Confirmed</span>`
+      : `<span class="badge condition">${Math.round(d.confidence * 100)}% read</span> <button onclick="confirmDoc('${d.id}')">Confirm values</button>`)
+      : `<span class="muted">${Math.round(d.confidence * 100)}%</span>`}</td></tr>`).join("");
+
+  $("#content").innerHTML = `
+  <section class="panel">
+    <div class="actions" style="justify-content:space-between">
+      <div><h2 style="margin:0">${esc(v.title)}</h2><div class="muted">${esc(app.borrowers.map(b => b.name).join(" & "))} · ${esc(app.property.address)} · ${money(app.loan.amount)} ${esc(app.loan.product)}</div></div>
+      <div style="text-align:right"><div class="muted" style="font-size:12px">Agent recommendation (advisory)</div><span class="rec ${v.recommendation}">${REC[v.recommendation]}</span></div>
+    </div>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><small>LTV</small><b>${r.ltv}%</b></div>
+      <div class="stat ${over(r.gds_qualifying, v.limits.gds)}"><small>GDS (limit ${v.limits.gds}%)</small><b>${r.gds_qualifying}%</b></div>
+      <div class="stat ${over(r.tds_qualifying, v.limits.tds)}"><small>TDS (limit ${v.limits.tds}%)</small><b>${r.tds_qualifying}%</b></div>
+      <div class="stat"><small>Qualifying rate</small><b>${r.qualifying_rate}%</b></div>
+      <div class="stat"><small>Flags / conditions</small><b>${v.flags.length} / ${v.conditions.length}</b></div>
+    </div>
+    ${v.comparison ? `<p class="muted" style="margin:10px 0 0">${esc(v.comparison.label)}: GDS ${v.comparison.gds}%, TDS ${v.comparison.tds}%</p>` : ""}
+    <details style="margin-top:10px"><summary class="muted">Why this recommendation · ${v.steps.length} agent steps</summary>
+      <ul>${v.recommendation_reasons.map(x => `<li>${esc(x)}</li>`).join("")}</ul><ul class="timeline">${v.steps.map(stepHtml).join("")}</ul></details>
+  </section>
+  <div class="grid2">
+    <div>
+      <section class="panel"><h2>Flags to review (${v.flags.length})</h2>${flags}</section>
+      <section class="panel"><h2>Qualifying inputs – feed the ratios</h2><table><tr><th>Input</th><th>Value</th><th></th></tr>${inputs}</table></section>
+    </div>
+    <div>
+      <section class="panel"><h2>Draft conditions (${v.conditions.length})</h2>${conds}</section>
+      <section class="panel"><h2>Documents (${v.documents.length})</h2><table>${docs}</table></section>
+      <section class="panel"><h2>Audit trail</h2><div class="audit">${rv.audit.map(a => `<div><span class="muted">${esc(a.at.slice(11))}</span> <b>${esc(a.who)}</b> ${esc(a.text)}</div>`).join("")}</div>
+        <p class="muted" style="font-size:12px;margin-bottom:0">Policy: ${v.policy_versions.map(p => esc(p.file) + " v" + esc(p.version)).join(", ")}</p></section>
+    </div>
+  </div>
+  <div class="approve-bar">
+    ${rv.approved ? `<div><b>✓ Approved for sending</b> <span class="muted">${esc(rv.approved.at.replace("T", " "))} · ${rv.approved.conditions.length} conditions. The agent never sends; this hands the list to the underwriter's normal send step.</span></div>`
+      : `<div class="blockers">${rv.blockers.length ? "Before approving: " + rv.blockers.map(esc).join(" · ") : `<span class="muted">All flags reviewed.</span>`}</div>
+         <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="approve()">Approve conditions list</button>`}
+  </div>`;
+}
+
+async function act(body) { view = await api(`/api/cases/${current}/action`, body); render(); }
+
+function ask(title, {value, multiline, needsValue} = {}) {
+  return new Promise(resolve => {
+    const codes = view.review.reason_codes.map(c => `<option>${esc(c)}</option>`).join("");
+    $("#dlgBody").innerHTML = `<h3>${esc(title)}</h3>
+      ${needsValue ? `<label>New value</label>${multiline ? `<textarea id="dv" rows="4">${esc(value)}</textarea>` : `<input id="dv" value="${esc(value)}">`}` : ""}
+      <label>Reason (logged)</label><select id="dr">${codes}</select><label>Note (optional)</label><input id="dn">
+      <div class="actions" style="justify-content:flex-end;margin-top:12px"><button id="dc">Cancel</button><button class="primary" id="dk">Save</button></div>`;
+    const d = $("#dlg"); d.showModal();
+    $("#dc").onclick = () => { d.close(); resolve(null); };
+    $("#dk").onclick = () => { const note = $("#dn").value.trim();
+      d.close(); resolve({value: needsValue ? $("#dv").value : null, reason: $("#dr").value + (note ? ": " + note : "")}); };
+  });
+}
+
+async function flagAct(id, action) {
+  let reason = null;
+  if (action === "reject") { const a = await ask("Reject flag as a false alarm"); if (!a) return; reason = a.reason; }
+  act({kind: "flag", target: id, action, reason});
+}
+async function editInput(key, label, value) {
+  const a = await ask(`Edit: ${label}`, {value, needsValue: true}); if (!a) return;
+  act({kind: "override", target: key, value: a.value.replace(/[$,\s]/g, ""), reason: a.reason});
+}
+async function condAct(id, action) {
+  let reason = null;
+  if (action === "reject") { const a = await ask(`Reject condition ${id}`); if (!a) return; reason = a.reason; }
+  act({kind: "condition", target: id, action, reason});
+}
+async function condEdit(id) {
+  const c = view.conditions.find(x => x.id === id), cr = view.review.condition_reviews[id];
+  const a = await ask(`Edit condition ${id}`, {value: cr?.text || c.text, multiline: true, needsValue: true}); if (!a) return;
+  act({kind: "condition", target: id, action: "edit", value: a.value, reason: a.reason});
+}
+function confirmDoc(id) { openDoc(id, null, true); }
+function approve() { act({kind: "approve"}); }
+
+function openDoc(id, field, confirming) {
+  const d = view.documents.find(x => x.id === id);
+  const rows = Object.entries(d.fields).map(([k, v]) => {
+    const val = Array.isArray(v) ? v.map(x => typeof x === "object" ? Object.values(x).join("  ·  ") : x).join("\n")
+      : typeof v === "object" ? Object.entries(v).map(([a, b]) => `${a}: ${b}`).join("\n") : v;
+    return `<div class="row ${k === field ? "hl" : ""}"><b>${esc(k)}</b><br>${esc(val).replace(/\n/g, "<br>")}</div>`;
+  }).join("");
+  const extra = d.pdf_metadata && field === "pdf_metadata" ? `<div class="row hl"><b>PDF metadata</b><br>${esc(JSON.stringify(d.pdf_metadata))}</div>` : "";
+  const hidden = d.hidden_text ? `<div class="row ${field === "hidden_text" ? "hl" : ""}" style="color:var(--muted)"><b>hidden text layer</b><br>${esc(d.hidden_text)}</div>` : "";
+  $("#dlgBody").innerHTML = `<h3>${esc(d.label)}</h3><p class="muted">${esc(d.filename)} · page ${d.page} · read confidence ${Math.round(d.confidence * 100)}%${d.quality_note ? " · " + esc(d.quality_note) : ""}</p>
+    <div class="docpage" style="${d.confidence < 0.8 ? "filter: blur(0.6px)" : ""}"><span class="wm">SYNTHETIC</span>${rows}${extra}${hidden}</div>
+    <div class="actions" style="justify-content:flex-end;margin-top:12px">${confirming ? `<button class="primary" id="dok">I checked these values against the source</button>` : ""}<button id="dx">Close</button></div>`;
+  const dlg = $("#dlg"); dlg.showModal();
+  $("#dx").onclick = () => dlg.close();
+  if (confirming) $("#dok").onclick = () => { dlg.close(); act({kind: "confirm_doc", target: id}); };
+}
+
+loadCases();
+</script>
+</body>
+</html>
