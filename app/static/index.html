@@ -96,6 +96,32 @@ button.link:hover { background: none; text-decoration: underline; }
 .band.slim { padding: 28px 32px; }
 .band.tight { padding-top: 28px; padding-bottom: 40px; }
 .doc button.link { text-align: left; }
+.card h2 .muted { font-weight: 400; }
+.issues-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; }
+.issues-grid .issue { background: var(--surface-soft); border: 0; border-radius: var(--r-md); padding: 18px 20px; display: flex; flex-direction: column; }
+.issues-grid .issue p { margin: 6px 0 14px 20px; }
+.issues-grid .issue .row { margin-top: auto; }
+.issue .grow { flex: 1; }
+.issue button { background: #fff; }
+.issue button.dark { background: var(--canvas-dark); color: #fff; }
+.issue button.link { background: none; }
+.cardhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.cardhead h2 { margin: 0; }
+.counts { display: flex; gap: 8px; flex-wrap: wrap; }
+.count { font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: var(--r-full); background: var(--surface-soft); }
+.count.ok { color: #00795b; } .count.warn { color: #a35700; background: #fff4e5; } .count.bad { color: var(--deep-red); background: #fdeceb; }
+.attention { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.att { display: flex; gap: 12px; align-items: center; padding: 12px 16px; border-radius: var(--r-md); background: var(--surface-soft); }
+.att.bad { background: #fdeceb; } .att.warn { background: #fff4e5; }
+.att div { flex: 1; min-width: 0; }
+.att b { display: block; font-size: 15px; }
+.att span:not(.ic) { font-size: 13px; color: var(--mute); }
+.att button { background: #fff; }
+.att .ic, .docchip .ic { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; color: #fff; background: var(--teal); }
+.att .ic.bad { background: var(--danger); } .att .ic.warn { background: var(--warning); } .att .ic.muted { background: var(--stone); }
+.docgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 4px 16px; }
+.docchip { display: flex; align-items: center; gap: 10px; text-align: left; background: none; border-radius: var(--r-md); padding: 8px 10px; font-weight: 500; font-size: 14px; }
+.docchip:hover { background: var(--surface-soft); }
 .status { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; }
 .status .who { color: var(--on-dark-mute); font-size: 14px; }
 .status .headline { font: 500 32px/1.19 var(--display); letter-spacing: -.5px; margin: 6px 0 10px; }
@@ -168,7 +194,7 @@ select, input, textarea { font: inherit; width: 100%; padding: 14px 16px; border
   .band.slim { padding: 24px 16px; }
   .status { grid-template-columns: 1fr; gap: 16px; }
   .status .headline { font-size: 26px; }
-  .cols, .viewer { grid-template-columns: 1fr; }
+  .cols, .viewer, .issues-grid, .attention { grid-template-columns: 1fr; }
   .card, dialog .body { padding: 20px; }
   .tile { min-width: 0; flex: 1; padding: 16px; }
   .tile b { font-size: 22px; }
@@ -312,27 +338,33 @@ function render() {
   const missing = v.flags.filter(f => f.check === "missing_document");
   const issues = v.flags.filter(f => f.check !== "missing_document" && f.check !== "low_confidence");
 
-  const issueHtml = issues.map(f => {
+  const issueHtml = issues.length ? `<div class="issues-grid">${issues.map(f => {
     const done = rv.flag_reviews[f.id];
     const ev = f.evidence.find(e => e.doc_id);
     return `<div class="issue ${done ? "done" : ""}"><div class="t"><span class="dot ${f.severity}"></span>${esc(f.title)}</div>
       <p>${esc(f.detail)}</p>
       <div class="row">${ev ? `<button class="link" onclick="openDoc('${ev.doc_id}','${esc(ev.field)}')">View source →</button>` : ""}
-      ${done ? `<span class="small muted">· ${done.action === "reject" ? "Marked not an issue" : done.action === "escalate" ? `Escalated to ${esc(f.escalate_to)}` : "Confirmed"}</span>
+      <span class="grow"></span>
+      ${done ? `<span class="small muted">${done.action === "reject" ? "Marked not an issue" : done.action === "escalate" ? `Escalated to ${esc(f.escalate_to)}` : "✓ Confirmed"}</span>
         ${rv.approved ? "" : `<button class="link" onclick="act({kind:'flag',target:'${esc(f.id)}',action:'undo'})">undo</button>`}`
-      : `<button onclick="act({kind:'flag',target:'${esc(f.id)}',action:'confirm'})">✓ Confirm</button>
+      : `${f.escalate_to ? `<button onclick="act({kind:'flag',target:'${esc(f.id)}',action:'escalate'})">Escalate</button>` : ""}
          <button onclick="notIssue('${esc(f.id)}')">Not an issue</button>
-         ${f.escalate_to ? `<button onclick="act({kind:'flag',target:'${esc(f.id)}',action:'escalate'})">Escalate</button>` : ""}`}</div></div>`;
-  }).join("") || `<p class="muted">No issues found. Income, deposits, debts and documents all line up.</p>`;
+         <button class="dark" onclick="act({kind:'flag',target:'${esc(f.id)}',action:'confirm'})">✓ Confirm</button>`}</div></div>`;
+  }).join("")}</div>` : `<p class="muted" style="margin:0">No issues found. Income, deposits, debts and documents all line up.</p>`;
 
-  const docsHtml = v.documents.map(d => {
-    const low = d.confidence < 0.8, conf = rv.confirmed_docs.includes(d.id);
-    return `<div class="doc"><span class="ic ${low && !conf ? "warn" : "ok"}">${low && !conf ? "!" : "✓"}</span>
-      <button class="link" style="color:var(--ink);font-size:14px" onclick="openDoc('${d.id}')">${esc(d.label)}</button>
-      ${low && !conf && !rv.approved ? `<button class="link" onclick="openDoc('${d.id}',null,true)">Hard to read · confirm</button>` : ""}</div>`;
-  }).join("") + missing.map(f => `<div class="doc"><span class="ic bad">✗</span><span>${esc(f.title.replace("Missing document: ", ""))} <span class="small bad">missing</span></span>
-<span class="small muted">· requested</span></div>`).join("")
-    + v.uploads.filter(u => !u.recognized).map(u => `<div class="doc"><span class="ic muted">?</span><span class="muted">${esc(u.filename)} · ${esc(u.note || "not recognized")}</span></div>`).join("");
+  const lowDocs = v.documents.filter(d => d.confidence < 0.8 && !rv.confirmed_docs.includes(d.id));
+  const unknown = v.uploads.filter(u => !u.recognized);
+  const attention = missing.map(f => `<div class="att bad"><span class="ic bad">✗</span><div><b>${esc(f.title.replace("Missing document: ", ""))}</b>
+        <span>Missing · requested from broker</span></div></div>`).join("")
+    + lowDocs.map(d => `<div class="att warn"><span class="ic warn">!</span><div><b>${esc(d.label)}</b><span>Hard to read · requested a clearer copy</span></div>
+        ${rv.approved ? "" : `<button onclick="openDoc('${d.id}',null,true)">Check & confirm</button>`}</div>`).join("")
+    + unknown.map(u => `<div class="att"><span class="ic muted">?</span><div><b>${esc(u.filename)}</b><span>${esc(u.note || "Not recognized")}</span></div></div>`).join("");
+  const received = v.documents.filter(d => !lowDocs.includes(d)).map(d =>
+    `<button class="docchip" onclick="openDoc('${d.id}')"><span class="ic">✓</span>${esc(d.label)}</button>`).join("");
+  const counts = [`<span class="count ok">✓ ${v.documents.length - lowDocs.length} received</span>`,
+    lowDocs.length ? `<span class="count warn">! ${lowDocs.length} hard to read</span>` : "",
+    missing.length ? `<span class="count bad">✗ ${missing.length} missing</span>` : ""].join("");
+  const docsHtml = `${attention ? `<div class="attention">${attention}</div>` : ""}<div class="docgrid">${received}</div>`;
 
   const msgs = rv.messages.map(m => `<div class="msg"><header><span class="pill ${m.from.startsWith("Agent") ? "auto" : "sent"}">${m.from.startsWith("Agent") ? "Sent automatically by agent" : "Sent by underwriter"}</span>
       <b>${esc(m.subject)}</b><span class="spacer" style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span></header><pre>${esc(m.body)}</pre></div>`).join("");
@@ -351,10 +383,8 @@ function render() {
     <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div>
   </div></section>
   <section class="band soft tight"><div class="inner">
-  <div class="cols">
-    <div class="card"><h2>Issues found (${issues.length})</h2>${issueHtml}</div>
-    <div class="card"><h2>Documents · ${v.documents.length} received${missing.length ? `, ${missing.length} missing` : ""}</h2>${docsHtml}</div>
-  </div>
+  <div class="card"><h2>Issues to review <span class="muted">· ${issues.length}</span></h2>${issueHtml}</div>
+  <div class="card"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div></div>${docsHtml}</div>
   <div class="card"><h2>Broker</h2>${msgs}
     ${rv.approved ? "" : `<div class="msg"><header><span class="pill">Draft · waiting for you</span><b>${esc(rv.draft.subject)}</b></header>
       <div style="padding:8px 12px">${conds}</div></div>
