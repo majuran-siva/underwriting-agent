@@ -61,10 +61,10 @@ button.link:active { color: #1a3866; background: none; }
 
 /* inbox */
 .queuehead { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; }
-.kpis { display: flex; gap: 10px; }
+.kpis { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .kpis div { background: var(--canvas); border-radius: var(--r-md); padding: 12px 18px; min-width: 130px; }
-.kpis b { display: block; font: 500 24px/1.2 var(--sans); }
-.kpis span { font: 500 13px/1.3 var(--sans); color: var(--muted); }
+.kpis b { display: block; font: 500 24px/1.2 var(--sans); white-space: nowrap; }
+.kpis span { font: 500 13px/1.3 var(--sans); color: var(--muted); white-space: nowrap; }
 .listbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .seg { display: flex; gap: 6px; }
 .queue { border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; margin-bottom: 16px; }
@@ -285,6 +285,7 @@ async function api(path, body) {
 /* ---------- 1. start: applications that arrived from the broker POS ---------- */
 const short = m => m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`;
 const compact = v => v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M` : `$${Math.round(v / 1e3)}K`;
+const fmtDay = d => new Date(d + "T12:00").toLocaleDateString("en-CA", {month: "short", day: "numeric", year: "numeric"});
 const ago = m => m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} hr ${m % 60} min ago`;
 let listTab = "new";
 const OUTCOME_TONE = {"Conditions sent": "attn", "Clear to approve": "ok", "Referred to senior": "attn", "Declined": "bad"};
@@ -295,13 +296,15 @@ async function startScreen(which) {
   const done = await api("/api/reviewed");
   const rows = [...samples].sort((x, y) => x.pos.received_min_ago - y.pos.received_min_ago);
   const isNew = listTab === "new";
+  const earliest = rows.filter(r => r.closing_date).sort((x, y) => x.closing_date.localeCompare(y.closing_date))[0];
   const avgTurn = Math.round(done.reduce((t, r) => t + r.turnaround_min, 0) / done.length);
   const hero = isNew
-    ? `<div><h1 class="display">${rows.length} new applications</h1><p class="lede" style="margin:0">Pick one to start a review.</p></div>
+    ? `<div><h1 class="display">New Applications</h1><p class="lede" style="margin:0">Pick one to start a review.</p></div>
        <div class="kpis"><div><b>${rows.length}</b><span>Waiting</span></div>
          <div><b>${short(rows[rows.length - 1].pos.received_min_ago)}</b><span>Oldest waiting</span></div>
-         <div><b>${compact(rows.reduce((t, r) => t + Number(r.loan_amount), 0))}</b><span>Loan volume</span></div></div>`
-    : `<div><h1 class="display">${done.length} reviewed today</h1><p class="lede" style="margin:0">Files that have been through review.</p></div>
+         <div><b>${compact(rows.reduce((t, r) => t + Number(r.loan_amount), 0))}</b><span>Loan volume</span></div>
+         ${earliest ? `<div><b>${fmtDay(earliest.closing_date)}</b><span>Earliest closing · ${esc(earliest.pos.app_no)}</span></div>` : ""}</div>`
+    : `<div><h1 class="display">Reviewed Applications</h1><p class="lede" style="margin:0">Files that have been through review.</p></div>
        <div class="kpis"><div><b>${done.length}</b><span>Reviewed</span></div>
          <div><b>${avgTurn} min</b><span>Avg. turnaround</span></div>
          <div><b>${done.filter(r => r.outcome === "Conditions sent").length}</b><span>Conditions sent</span></div></div>`;
@@ -336,7 +339,6 @@ async function startScreen(which) {
         <div class="qrow qhead" role="row"><span>Application</span><span>Source</span><span>Borrower · property</span><span>Loan</span><span>Broker</span>
           <span>${isNew ? "Received" : "Reviewed"}</span><span>${isNew ? "" : "Outcome"}</span></div>
         ${isNew ? newRows : doneRows}
-        <div class="dropnote">Drop PDFs or photos anywhere on this list to upload a loan application.</div>
       </div>
     </div></section>`;
   const drop = $("#drop");
