@@ -273,6 +273,12 @@ class _Run:
 
     def build_application(self) -> Application:
         app = copy.deepcopy(self.app)
+        # Counter-offer what-if: restructured loan terms (amount keeps the price, so the down payment absorbs it).
+        if (amount := self.overrides.get("loan:amount")):
+            app["loan"]["amount"] = str(amount["value"])
+            app["loan"]["down_payment"] = str(_d(app["property"]["purchase_price"]) - _d(amount["value"]))
+        if (amortization := self.overrides.get("loan:amortization")):
+            app["loan"]["amortization_years"] = int(amortization["value"])
         for inp in self.inputs:
             if inp["key"].startswith("income:"):
                 _, bi, ii = inp["key"].split(":")

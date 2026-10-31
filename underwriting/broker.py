@@ -30,7 +30,7 @@ def document_request(view: dict) -> dict | None:
     items = [c for c in view["conditions"] if c["raised_by"] in DOCUMENT_REQUEST_CHECKS]
     if not items:
         return None
-    body = [f"Hello {(view.get('pos') or {}).get('broker', '').split(' ')[0]},".replace(" ,", ","), "",
+    body = [_hello(view), "",
             f"We've started our review. To keep it moving, please send the following:", ""]
     body += [f"• {c['text']}" for c in items]
     body += ["", "Our underwriter will follow up with the full review shortly.", "", f"{LENDER} – Underwriting"]
@@ -125,20 +125,68 @@ def _report_text(report: list[dict]) -> list[str]:
     return lines
 
 
-def review_message(view: dict, condition_reviews: dict, already_requested: set[str]) -> dict:
+def _hello(view: dict) -> str:
+    return f"Hello {(view.get('pos') or {}).get('broker', '').split(' ')[0]},".replace(" ,", ",")
+
+
+def review_message(view: dict, condition_reviews: dict, already_requested: set[str], status: str | None = None,
+                   intro: list[str] | None = None, subject: str = "review and conditions", kind: str = "conditions") -> dict:
     """The conditions email with the full review report, drafted for the underwriter to send."""
     report = review_report(view, condition_reviews, already_requested)
     section = {s["title"]: s for s in report}
     outstanding = section["Conditions before approval"]["items"]
-    status = (f"Under review – {len(outstanding)} condition{'s' * (len(outstanding) != 1)} to satisfy before approval"
-              if outstanding else "Review complete – standard conditions only")
-    lines = [f"Hello {(view.get('pos') or {}).get('broker', '').split(' ')[0]},".replace(" ,", ","), "", "We've completed our first review of this file. The full review and our conditions are below.",
+    status = status or (f"Under review – {len(outstanding)} condition{'s' * (len(outstanding) != 1)} to satisfy before approval"
+                        if outstanding else "Review complete – standard conditions only")
+    lines = [_hello(view), "", *(intro or ["We've completed our first review of this file. The full review and our conditions are below."]),
              "", f"Status: {status}"]
     lines += _report_text(report)
     lines += ["", "Please send the outstanding items in one package where possible, and reply with any questions.",
               "", f"{LENDER} – Underwriting"]
-    return {"subject": _salutation(view) + " – review and conditions", "kind": "conditions", "status": status,
+    return {"subject": _salutation(view) + f" – {subject}", "kind": kind, "status": status,
             **_addresses(view),
             "report": report, "body": "\n".join(lines),
             "condition_ids": [i["id"] for s in report if "items" in s and s["title"] != "Conditions satisfied"
                               for i in s["items"]]}
+
+
+def _letter(view: dict, subject: str, kind: str, status: str, lines: list[str]) -> dict:
+    body = [_hello(view), "", *lines, "", "Please reply with any questions.", "", f"{LENDER} – Underwriting"]
+    return {"subject": _salutation(view) + f" – {subject}", "kind": kind, "status": status, **_addresses(view),
+            "body": "\n".join(body), "condition_ids": []}
+
+
+def decision_message(view: dict, decision: dict, condition_reviews: dict, already_requested: set[str],
+                     decline_wording: dict[str, str]) -> dict:
+    """The broker email for a recorded decision. Drafted only; the underwriter previews and sends it."""
+    kind, note = decision["type"], (decision.get("note") or "").strip()
+    if kind in ("approve", "approve_conditions"):
+        msg = review_message(view, condition_reviews, already_requested, kind="decision", subject="commitment",
+                             status="Approved" if kind == "approve" else "Approved with conditions",
+                             intro=["Good news: this file is approved. Our commitment, the review and the conditions are below."])
+        return msg
+    if kind == "counter_offer":
+        t, r, loan = decision["terms"], view["ratios"], view["application"]["loan"]
+        offer = [f"Loan amount: ${float(t.get('amount') or loan['amount']):,.0f}",
+                 f"Amortization: {t.get('amortization') or loan['amortization_years']} years",
+                 f"GDS {r['gds_qualifying']}% · TDS {r['tds_qualifying']}% at the qualifying rate of {r['qualifying_rate']}%"]
+        return review_message(view, condition_reviews, already_requested, kind="decision", subject="counter-offer",
+                              status="Counter-offer", intro=["We can't approve the file as submitted, but we can offer the following:",
+                                                             "", *[f"• {o}" for o in offer], *(["", note] if note else []),
+                                                             "", "If the borrower accepts, the conditions below apply."])
+    if kind == "refer":
+        return review_message(view, condition_reviews, already_requested, kind="decision", subject="file under senior review",
+                              status="Under senior review",
+                              intro=["This file has been passed to a senior underwriter for a final decision. "
+                                     "We'll follow up shortly; in the meantime the review and outstanding items are below."])
+    if kind == "hold":
+        return _letter(view, "file on hold", "decision", "On hold",
+                       ["This file is on hold while we wait for the following:", "",
+                        *[f"• {r}" for r in decision["reasons"]], *(["", note] if note else []),
+                        "", f"We'll revisit it on {decision['follow_up']}."])
+    if kind == "decline":
+        return _letter(view, "decision", "decision", "Declined",
+                       ["After reviewing this file we're unable to approve it.", "",
+                        *[f"• {decline_wording.get(r, r)}" for r in decision["reasons"]],
+                        "", "We'd be happy to look at a restructured application."])
+    return _letter(view, "application withdrawn", "decision", "Withdrawn",
+                   ["As requested, we've closed this application as withdrawn. No further action is needed."])

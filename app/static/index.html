@@ -208,11 +208,33 @@ button.link:active { color: #1a3866; background: none; }
 .cchip.open { background: var(--ochre-soft); border-color: var(--yellow); } .cchip.met { background: var(--success-bg); border-color: var(--mint); color: var(--success); }
 
 /* overview */
-.ogrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
-.ogrid .ocard { margin: 0; }
-.ocard.wide { grid-column: 1 / -1; }
-.ocard h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font: 480 18px/1.2 var(--sans); letter-spacing: .2px; color: var(--ink); }
-.oic { width: 30px; height: 30px; border-radius: 10px; background: var(--lavender); display: grid; place-items: center; font-size: 15px; }
+.ostrip { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; padding: 14px 20px; margin-bottom: 16px; border-radius: var(--r-md); background: var(--surface-soft); border: 1px solid var(--hairline); font-size: 14px; color: var(--muted); }
+.ostrip b { color: var(--ink); font-weight: 480; }
+.oqual { margin-bottom: 16px; }
+.oqhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.oqhead h3, .ocard summary .otitle b { display: flex; align-items: center; gap: 10px; margin: 0; font: 480 18px/1.2 var(--sans); letter-spacing: .2px; color: var(--ink); }
+.meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.meter { margin: 0; }
+.ocolhead { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; margin: 4px 0 10px; font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); }
+.ocolhead > span:last-child { display: flex; justify-content: space-between; align-items: center; }
+.oall { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.otitle .owarn { display: inline-block; margin-top: 6px; }
+.ocols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; margin-bottom: 16px; }
+.ocol { display: flex; flex-direction: column; gap: 16px; }
+details.ocard { margin: 0; padding: 0; }
+details.ocard > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 18px 20px; }
+details.ocard > summary::-webkit-details-marker { display: none; }
+details.ocard[open] > summary { border-bottom: 1px solid var(--hairline); }
+.otitle { flex: 1; min-width: 0; }
+.otitle b { font-size: 16px !important; }
+.osum { display: block; margin-top: 4px; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details.ocard[open] .osum { display: none; }
+.owarn { font: 420 12px/1 var(--sans); padding: 6px 10px; border-radius: 40px; background: var(--coral-soft); color: var(--coral); white-space: nowrap; }
+.ook { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--success-bg); color: var(--success); font-size: 12px; font-weight: 700; }
+details.ocard .chev { color: var(--muted); transition: transform .15s; }
+details.ocard:not([open]) .chev { transform: rotate(-90deg); }
+.obody { padding: 18px 20px 20px; }
+.oic { width: 30px; height: 30px; border-radius: 10px; background: var(--lavender); display: grid; place-items: center; font-size: 15px; flex: none; }
 .kvs { display: grid; gap: 12px 24px; margin: 0; }
 .kvs.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .kv dt { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); }
@@ -225,18 +247,18 @@ button.link:active { color: #1a3866; background: none; }
 .phead b { display: block; font-size: 16px; }
 .phead small { color: var(--muted); font-size: 13px; }
 .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #fff; display: grid; place-items: center; font: 480 14px/1 var(--sans); flex: none; }
-.score { text-align: center; font: 480 20px/1 var(--sans); padding: 8px 12px; border-radius: var(--r-md); background: var(--success-bg); color: var(--success); }
+.scores { display: flex; gap: 8px; margin-bottom: 14px; }
+.score { text-align: center; font: 480 20px/1 var(--sans); padding: 8px 14px; border-radius: var(--r-md); background: var(--success-bg); color: var(--success); }
 .score small { display: block; font: 500 10px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; margin-top: 4px; }
 .score.fair { background: var(--ochre-soft); color: #8a5a00; } .score.low { background: var(--coral-soft); color: var(--coral); }
-.meter { margin-bottom: 14px; }
-.mtop { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-.mtop span { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); width: 36px; }
-.mtop b { font: 480 20px/1 var(--sans); color: var(--ink); }
+.mtop { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.mtop span { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); }
+.mtop b { font: 480 24px/1 var(--sans); color: var(--ink); }
 .mtop small { margin-left: auto; color: var(--muted); font-size: 12px; }
 .mtrack { position: relative; height: 8px; border-radius: 8px; background: var(--lavender); }
 .mtrack i { position: absolute; inset: 0 auto 0 0; border-radius: 8px; background: var(--success-border); }
 .mtrack em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 2px; }
-.meter.over .mtrack i { background: var(--coral); } .meter.over .mtop b { color: var(--coral); }
+.meter.over .mtrack i { background: var(--coral); } .meter.over .mtop b, .meter.over .mtop small { color: var(--coral); }
 .otable { width: 100%; border-collapse: collapse; font-size: 14px; }
 .otable th { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0 8px 8px 0; border-bottom: 1px solid var(--hairline); }
 .otable td { padding: 10px 8px 10px 0; border-bottom: 1px solid var(--hairline); color: var(--ink); }
@@ -245,7 +267,55 @@ button.link:active { color: #1a3866; background: none; }
 .otag.ok { background: var(--success-bg); color: var(--success); } .otag.bad { background: var(--coral-soft); color: var(--coral); }
 .rental { margin-top: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--lavender); }
 .rental small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
-.onote { margin: 8px 0 0; font-size: 13px; color: var(--muted); }
+.onote { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
+
+/* decision */
+.hright { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.decbtn { background: var(--primary); color: #fff; height: 42px; padding: 0 22px; font-size: 15px; }
+.decbtn.decided { height: auto; padding: 8px 18px; text-align: left; background: rgba(237,237,243,.1); color: var(--on-dark); border: 1px solid rgba(237,237,243,.2); }
+.decbtn.decided small { display: block; font: 500 10px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--fog); margin-bottom: 4px; }
+.decbtn.decided.good { background: rgba(47,174,120,.22); border-color: rgba(143,217,182,.5); }
+.decbtn.decided.bad { background: rgba(217,71,92,.28); border-color: rgba(241,194,202,.5); }
+.decbtn.decided.attn { background: rgba(201,138,27,.25); border-color: rgba(232,185,74,.5); }
+dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min(520px, 100vw); border-radius: 16px 0 0 16px; }
+dialog.drawer .body { height: 100%; overflow: auto; padding: 24px 28px; }
+.dhead { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.dhead small { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); }
+.dhead h3 { margin: 6px 0 0; }
+.dclose { width: 36px; height: 36px; padding: 0; border-radius: 50%; }
+.drawer h4 { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+.drec { padding: 14px 16px; border-radius: var(--r-md); background: var(--lavender); }
+.drec small { font: 500 11px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); }
+.drec b { display: block; font-size: 17px; margin-top: 4px; }
+.drec ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+.dcheck { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+.dcheck li { display: flex; gap: 10px; align-items: center; padding: 6px 0; }
+.dcheck li span { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none; }
+.dcheck li.ok span { background: var(--success-bg); color: var(--success); }
+.dcheck li.no span { background: var(--coral-soft); color: var(--coral); }
+.dopts { display: flex; flex-direction: column; gap: 8px; }
+.dopt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: var(--r-md); cursor: pointer; margin: 0; color: var(--ink); font: inherit; text-transform: none; letter-spacing: 0; }
+.dopt input { display: none; }
+.dopt.on { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); background: var(--surface-soft); }
+.dopt.off { opacity: .5; cursor: not-allowed; }
+.ddot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex: none; background: var(--muted); }
+.ddot.good { background: var(--success-border); } .ddot.attn { background: var(--ochre); } .ddot.bad { background: var(--coral); }
+.dtxt b { display: flex; gap: 8px; align-items: center; font-size: 15px; }
+.dtxt em { font: 500 10px/1 var(--sans); font-style: normal; letter-spacing: .28px; text-transform: uppercase; padding: 4px 8px; border-radius: 40px; background: var(--primary); color: #fff; }
+.dtxt small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.dreasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.dchip { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 7px 12px; border-radius: 40px; background: var(--primary-tint); font: 420 13px/1 var(--sans); text-transform: none; letter-spacing: 0; color: var(--ink); cursor: pointer; }
+.dchip input { width: auto; margin: 0; }
+.dterms { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dwhatif { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-soft); font-size: 14px; }
+.dwhatif span { display: block; margin-top: 4px; font-weight: 480; }
+.dwhatif.ok { background: var(--success-bg); } .dwhatif.ok span { color: var(--success); }
+.dwhatif.no { background: var(--coral-soft); } .dwhatif.no span { color: var(--coral); }
+.derr { color: var(--coral); font-size: 14px; min-height: 1em; }
+.dfoot { display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom: -24px; padding: 16px 0 8px; background: var(--card); }
+.dcurrent { padding: 16px; border-radius: var(--r-md); background: var(--surface-soft); border-left: 4px solid var(--muted); margin-bottom: 12px; }
+.dcurrent.good { border-color: var(--success-border); } .dcurrent.bad { border-color: var(--coral); } .dcurrent.attn { border-color: var(--ochre); }
+.dcurrent small { color: var(--muted); font-size: 12px; } .dcurrent b { display: block; font-size: 20px; margin: 4px 0; } .dcurrent p { margin: 4px 0 0; font-size: 14px; }
 
 /* broker communication */
 .msg { border: 1px solid var(--hairline); border-radius: var(--r-md); margin-bottom: 12px; overflow: hidden; background: var(--card); }
@@ -301,13 +371,15 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .band.block { margin: 12px 12px 0; padding: 22px 18px; }
   .display { font-size: 30px; }
   .queuehead, .status { grid-template-columns: 1fr; gap: 16px; }
+  .hright { align-items: stretch; }
   .kpis div, .tile { min-width: 0; flex: 1; padding: 10px 12px; }
   .tile b { font-size: 22px; }
   .qrow { grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px; }
   .qrow.qhead { display: none; }
   .qrow > span:nth-child(3), .qrow > span:nth-child(5) { grid-column: 1 / -1; }
   .qrow > span:nth-child(2), .qrow > span:nth-child(6) { display: none; }
-  .cols, .viewer, .issues-grid, .attention, .ogrid, .kvs.two { grid-template-columns: 1fr; }
+  .cols, .viewer, .issues-grid, .attention, .ocols, .meters, .kvs.two { grid-template-columns: 1fr; }
+  .ocolhead { grid-template-columns: 1fr; } .ocolhead > span:first-child { display: none; }
   .tabs { padding: 16px 12px 0; }
   .cond { flex-direction: column; gap: 8px; }
   .card, dialog .body { padding: 18px; }
@@ -483,6 +555,14 @@ function headline(v) {
 }
 
 function render() {
+  // A counter-offer restructures the loan: show its terms everywhere the loan appears (ratios already use them).
+  const terms = view.review.decision?.type === "counter_offer" ? view.review.decision.terms : null;
+  if (terms) {
+    const base = view.application, loan = {...base.loan, original_amount: base.loan.original_amount ?? base.loan.amount};
+    if (terms.amount) { loan.amount = String(terms.amount); loan.down_payment = String(Number(base.property.purchase_price) - Number(terms.amount)); }
+    if (terms.amortization) loan.amortization_years = Number(terms.amortization);
+    view = {...view, application: {...base, loan}};
+  }
   const v = view, rv = v.review, r = v.ratios, a = v.application;
   const [tone, title, sub] = headline(v);
   const tile = (label, val, limit) => { const over = Number(val) > limit;
@@ -526,12 +606,12 @@ function render() {
   const aps = v.documents.find(d => d.type === "purchase_agreement")?.fields || {};
   const L = a.loan, P = a.property;
   const fmtDate = dt => dt ? new Date(dt + "T12:00").toLocaleDateString("en-CA", {month: "short", day: "numeric", year: "numeric"}) : "Not provided";
-  const facts = [["Loan amount", money(L.amount)], ["Purchase price", money(P.purchase_price)],
+  const facts = [["Loan amount", money(L.amount), L.original_amount && L.original_amount !== L.amount ? `counter-offer · was ${money(L.original_amount)}` : ""], ["Purchase price", money(P.purchase_price)],
     ["Down payment", money(L.down_payment), `${Math.round(L.down_payment / P.purchase_price * 100)}%`],
     ["Closing date", fmtDate(aps.closing_date)], ["Rate", `${L.contract_rate}%`, `qualifies at ${r.qualifying_rate}%`],
     ["Term · amortization", `${L.term_years} yr · ${L.amortization_years} yr`, esc(L.product)]];
 
-  const kindLabel = k => k === "document_request" ? "Document request" : "Review report & conditions";
+  const kindLabel = k => ({document_request: "Document request", decision: "Decision letter"}[k] || "Review report & conditions");
   const msgs = rv.messages.map((m, i) => `<details class="msg sent" ${msgOpen(`sent${i}`, false)} ontoggle="msgToggle(this, 'sent${i}')"><summary><span class="pill sent">✓ Sent</span><b>${kindLabel(m.kind)}</b><span class="muted small">to ${esc(m.to.split(" <")[0])}</span><span style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span><span class="chev">▾</span></summary>
       <div class="ehead"><div><span>From</span>${esc(m.from)}</div><div><span>To</span>${esc(m.to)}</div><div><span>Subject</span><b>${esc(m.subject)}</b></div></div>
       <pre class="sentbody">${esc(m.body)}</pre></details>`).join("");
@@ -557,14 +637,14 @@ function render() {
 
   const unreviewed = issues.filter(f => !rv.flag_reviews[f.id]);
   const needsDocs = missing.length + lowDocs.length;
-  if (!tab) tab = tabByBatch[batch] || (unreviewed.length ? "issues" : lowDocs.length ? "docs" : rv.approved ? "broker" : "file");   // attention first, else Overview
+  if (!tab) tab = tabByBatch[batch] || "file";   // files open on Overview; tab badges point to what needs attention
   const blockerHtml = rv.blockers.map(b => tabLink(b.includes("issue") ? "issues" : "docs", esc(b))).join(" and ");
   const tabs = [
     {id: "file", label: "Overview", badge: openCount ? `${openCount} outstanding` : "✓", tone: openCount ? "attn" : "ok"},
     {id: "issues", label: "Issues to Review", badge: unreviewed.length ? `${unreviewed.length} open` : issues.length ? "✓" : "None",
      tone: unreviewed.some(f => f.area === "authenticity") ? "crit" : unreviewed.length ? "attn" : "ok"},
     {id: "docs", label: "Documents", badge: needsDocs ? `${needsDocs} need attention` : `✓ ${v.documents.length}`, tone: needsDocs ? "attn" : "ok"},
-    {id: "broker", label: "Broker Communication", badge: rv.approved ? "✓ Sent" : "Draft ready", tone: rv.approved ? "ok" : ""},
+    {id: "broker", label: "Broker Communication", badge: rv.draft ? "Draft ready" : rv.messages.length ? "✓ Sent" : "", tone: rv.draft ? "" : "ok"},
     {id: "activity", label: "Activity"},
   ];
   const panels = {
@@ -577,8 +657,10 @@ function render() {
         <div class="report"><div class="rsec wide"><h4>Before approval</h4>${fileConds.map(condRow).join("") || `<p class="small">None. Only the standard conditions remain.</p>`}</div>
         <div class="rsec wide"><h4>Before funding</h4>${fundConds.map(condRow).join("")}</div></div></div>`,
     broker: `<div class="card"><h2>Broker Communication</h2>${req}
-      ${rv.approved ? "" : `<details class="msg" ${msgOpen("cond", true)} ontoggle="msgToggle(this, 'cond')"><summary><span class="pill">Draft</span><b>Review report & conditions</b><span class="muted small">${esc(rv.draft.status)}</span><span style="flex:1"></span><span class="chev">▾</span></summary>
-        <div class="msgsum"><span>To ${esc(rv.draft.to.split(" <")[0])} · includes the file summary, qualification, ${openCount} outstanding${metCount ? ` and ${metCount} fulfilled` : ""} condition${openCount + metCount === 1 ? "" : "s"}. Conditions are edited in the ${tabLink("file", "Overview")} tab.</span></div>
+      ${!rv.draft ? "" : `<details class="msg" ${msgOpen("cond", true)} ontoggle="msgToggle(this, 'cond')"><summary><span class="pill">Draft</span><b>${rv.draft.kind === "decision" ? `Decision letter · ${esc(rv.decision.label)}` : "Review report & conditions"}</b><span class="muted small">${esc(rv.draft.status)}</span><span style="flex:1"></span><span class="chev">▾</span></summary>
+        <div class="msgsum"><span>To ${esc(rv.draft.to.split(" <")[0])} · ${rv.draft.kind === "decision"
+          ? `the letter for your decision${rv.draft.condition_ids.length ? ", with the file summary and conditions" : ""}. Change the decision from the ${`<button class="link" onclick="openDecision()">Decision</button>`} button.`
+          : `includes the file summary, qualification, ${openCount} outstanding${metCount ? ` and ${metCount} fulfilled` : ""} condition${openCount + metCount === 1 ? "" : "s"}. Conditions are edited in the ${tabLink("file", "Overview")} tab.`}</span></div>
         <div class="msgfoot"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + blockerHtml : "Nothing goes out until you send it."}</span>
         <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="previewMsg('approve')">Preview & send</button></div></details>`}
       ${msgs || (rv.approved ? "" : `<p class="small muted" style="margin:4px 0 0">Nothing sent yet.</p>`)}</div>`,
@@ -596,7 +678,8 @@ function render() {
     <div><div class="who"><b>${esc(a.borrowers.map(b => b.name).join(" & "))}</b><span>${esc(a.property.address)}</span>
         <span class="state ${tone}">${esc(title)}</span></div>
       <dl class="facts">${facts.map(([k, val, note]) => `<div><dt>${k}</dt><dd>${val}${note ? `<small>${note}</small>` : ""}</dd></div>`).join("")}</dl></div>
-    <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div>
+    <div class="hright">${decisionControl(rv)}
+      <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div></div>
   </div></section>
   <nav class="tabs inner" role="tablist">${tabs.map(t => `<button role="tab" aria-selected="${t.id === tab}" class="tabbtn ${t.id === tab ? "on" : ""}"
       onclick="setTab('${t.id}')">${t.label}${t.badge ? `<span class="tbadge ${t.tone || ""}">${t.badge}</span>` : ""}</button>`).join("")}</nav>
@@ -604,7 +687,8 @@ function render() {
   const at = tabs.findIndex(t => t.id === tab), prev = tabs[at - 1], next = tabs[at + 1];
   const tabNav = `<div class="tabnav">${prev ? `<button onclick="setTab('${prev.id}')">← ${prev.label}</button>` : "<span></span>"}
     <span class="muted small">${at + 1} of ${tabs.length}</span>
-    ${next ? `<button class="primary" onclick="setTab('${next.id}')">${next.label} →</button>` : "<span></span>"}</div>`;
+    ${next ? `<button class="primary" onclick="setTab('${next.id}')">${next.label} →</button>`
+      : rv.decision ? `<button onclick="openDecision()">View decision</button>` : `<button class="primary" onclick="openDecision()">Make decision →</button>`}</div>`;
   $("#app").querySelector("#tabpanel").innerHTML = panels[tab] + tabNav;
 }
 
@@ -615,83 +699,209 @@ function msgToggle(el, key) { msgState[batch + key] = el.open; }
 function setTab(id) { tab = id; tabByBatch[batch] = id; render(); window.scrollTo({top: 0, behavior: "smooth"}); }
 const tabLink = (id, text) => `<button class="link" onclick="setTab('${id}')">${text}</button>`;
 
-/* ---------- Overview: the file's home page ---------- */
+/* ---------- Overview: the file's home page ----------
+   Reads like an underwriter reads a file: context → answer (qualification) → borrower side | deal side → conditions.
+   Borrower/deal cards collapse to a one-line summary; cards with a problem start open, clean ones closed. */
+const ovState = {};
+function ovToggle(el, key) { ovState[batch + key] = el.open; }
+function ovAll(open) { document.querySelectorAll("details.ocard").forEach(d => { d.open = open; ovState[batch + d.dataset.key] = open; }); }
+
 function overviewHtml(v, rv) {
   const a = {liabilities: [], existing_properties: [], ...v.application}, L = a.loan, P = a.property, r = v.ratios, pos = v.pos || {};
   const docs = t => v.documents.filter(d => d.type === t);
   const fld = (t, k, who) => (docs(t).find(d => !who || d.fields.name === who) || {fields: {}}).fields[k];
-  const pct = (x, y) => `${(Number(x) / Number(y) * 100).toFixed(0)}%`;
+  const live = v.flags.filter(f => !f.dismissed);
+  const has = (...checks) => live.filter(f => checks.includes(f.check));
   const row = (k, val, note, cls = "") => val == null || val === "" ? "" :
     `<div class="kv ${cls}"><dt>${k}</dt><dd>${val}${note ? `<small>${note}</small>` : ""}</dd></div>`;
-  const card = (title, icon, body, wide) => `<section class="ocard card ${wide ? "wide" : ""}"><h3><span class="oic">${icon}</span>${title}</h3>${body}</section>`;
-  const bar = (label, val, limit) => { const over = Number(val) > limit, w = Math.min(100, Number(val) / (limit * 1.25) * 100);
-    return `<div class="meter ${over ? "over" : ""}"><div class="mtop"><span>${label}</span><b>${val}%</b><small>limit ${limit}%</small></div>
-      <div class="mtrack"><i style="width:${w}%"></i><em style="left:${100 / 1.25}%"></em></div></div>`; };
+  const warn = n => n ? `<span class="owarn">⚠ ${n}</span>` : "";
+  const card = (key, title, icon, summary, problems, body) => {
+    const open = ovState[batch + key] ?? problems.length > 0;
+    return `<details class="ocard card" data-key="${key}" ${open ? "open" : ""} ontoggle="ovToggle(this, '${key}')">
+      <summary><span class="oic">${icon}</span><span class="otitle"><b>${title}</b>
+          ${problems.length ? warn(problems.length === 1 ? problems[0] : `${problems.length} to check`) : ""}<span class="osum">${summary}</span></span>
+        ${problems.length ? "" : `<span class="ook">✓</span>`}<span class="chev">▾</span></summary>
+      <div class="obody">${body}</div></details>`;
+  };
   const inputVal = key => (v.inputs.find(i => i.key === key) || {}).value;
-  const incomeLabel = t => ({salary: "Salaried", self_employed: "Self-employed", hourly: "Hourly", rental: "Rental", bonus: "Bonus", commission: "Commission"}[t] || t);
+  const incomeLabel = t => ({salary: "Salaried", self_employed: "Self-employed", hourly: "Hourly", rental: "Rental"}[t] || t);
   const scoreTone = s => s >= 760 ? "good" : s >= 680 ? "fair" : "low";
 
-  const borrowers = a.borrowers.map((b, bi) => {
+  /* summary strip */
+  const strip = `<div class="ostrip">
+    <span><b>${esc(pos.app_no || "Manual upload")}</b></span>${pos.source ? `<span class="otag">${esc(pos.source)}</span>` : ""}
+    ${pos.broker ? `<span>Broker <b>${esc(pos.broker)}</b> · ${esc(pos.brokerage)}</span>` : ""}
+    <span>Received <b>${pos.received_min_ago != null ? ago(pos.received_min_ago) : "just now"}</b></span>
+    <span>Closing <b>${fmtDay(fld("purchase_agreement", "closing_date"))}</b></span>
+    <span>${esc(L.product)} · <b>${L.contract_rate}%</b></span></div>`;
+
+  /* qualification (always open) */
+  const meter = (label, val, limit) => { const over = Number(val) > limit, w = Math.min(100, Number(val) / (limit * 1.25) * 100);
+    return `<div class="meter ${over ? "over" : ""}"><div class="mtop"><span>${label}</span><b>${val}%</b><small>${over ? "over" : "within"} ${limit}%</small></div>
+      <div class="mtrack"><i style="width:${w}%"></i><em style="left:${100 / 1.25}%"></em></div></div>`; };
+  const qual = `<section class="card oqual"><div class="oqhead"><h3><span class="oic">📊</span>Qualification</h3>
+      <span class="small muted">Stress-tested at ${r.qualifying_rate}% · qualifying income ${money(r.qualifying_monthly_income)}/mo · other debts ${money(r.other_monthly_debts)}/mo</span></div>
+    <div class="meters">${meter("GDS", r.gds_qualifying, v.limits.gds)}${meter("TDS", r.tds_qualifying, v.limits.tds)}${meter("LTV", r.ltv, 80)}</div>
+    ${v.comparison ? `<p class="onote">${esc(v.comparison.label)}: GDS ${v.comparison.gds}%, TDS ${v.comparison.tds}%</p>` : ""}</section>`;
+
+  /* borrower side */
+  const SHORT = {income_mismatch: "income mismatch", self_employed_average: "lower qualifying income", paystub_ytd: "pay stub concern", pdf_edited: "pay stub concern"};
+  const incomeProblems = [...new Set(has(...Object.keys(SHORT)).map(f => SHORT[f.check]))];
+  const people = a.borrowers.map((b, bi) => {
     const inc = b.incomes[0] || {}, q = inputVal(`income:${bi}:0`);
     const start = fld("employment_letter", "start_date", b.name) || fld("business_registration", "registered");
     const years = start ? Math.max(0, (new Date("2026-10-30") - new Date(start)) / 3.156e10).toFixed(1) : null;
     return `<div class="person"><div class="phead"><span class="avatar">${esc(b.name.split(" ").map(x => x[0]).slice(0, 2).join(""))}</span>
-      <div><b>${esc(b.name)}</b><small>${esc(incomeLabel(inc.type))}${inc.employer ? " · " + esc(inc.employer) : ""}</small></div>
-      ${b.credit_score ? `<span class="score ${scoreTone(b.credit_score)}">${b.credit_score}<small>credit</small></span>` : ""}</div>
-      <dl class="kvs">${row("Stated income", money(inc.annual_amount))}${q && Number(q) !== Number(inc.annual_amount) ? row("Qualifying income", money(q), "used in ratios") : ""}
+      <div><b>${esc(b.name)}</b><small>${esc(incomeLabel(inc.type))}${inc.employer ? " · " + esc(inc.employer) : ""}</small></div></div>
+      <dl class="kvs two">${row("Stated income", money(inc.annual_amount))}${row("Qualifying income", q ? money(q) : null, q && Number(q) !== Number(inc.annual_amount) ? "used in ratios" : "")}
         ${row(inc.type === "self_employed" ? "In business since" : "Employed since", start ? fmtDay(start) : null, years ? `${years} yrs` : "")}
         ${row("Position", fld("employment_letter", "position", b.name))}</dl></div>`;
   }).join("");
+  const totalQual = a.borrowers.reduce((t, b, bi) => t + Number(inputVal(`income:${bi}:0`) || b.incomes[0]?.annual_amount || 0), 0);
+  const borrowersCard = card("borrowers", `Borrower${a.borrowers.length > 1 ? "s" : ""} & income`, "👤",
+    `${esc(a.borrowers.map(b => b.name).join(" & "))} · ${esc([...new Set(a.borrowers.map(b => incomeLabel(b.incomes[0]?.type)))].join(", "))} · qualifying ${money(totalQual)}`,
+    incomeProblems, people);
+
+  const bureau = (docs("credit_bureau")[0] || {fields: {tradelines: [], scores: {}}}).fields;
+  const declared = new Set(a.liabilities.map(l => l.lender));
+  const undisclosed = has("undisclosed_debt");
+  const monthly = Number(r.other_monthly_debts);
+  const debtsCard = card("credit", "Credit & debts", "💳",
+    `score ${a.borrowers.map(b => b.credit_score).filter(Boolean).join(" / ") || "n/a"} · ${bureau.tradelines.length} debt${bureau.tradelines.length === 1 ? "" : "s"} · ${money(monthly)}/mo`,
+    undisclosed.map(() => "1 not declared"),
+    `<div class="scores">${a.borrowers.filter(b => b.credit_score).map(b => `<span class="score ${scoreTone(b.credit_score)}">${b.credit_score}<small>${esc(b.name.split(" ")[0])}</small></span>`).join("")}</div>
+     ${bureau.tradelines.length ? `<table class="otable"><tr><th>Debt</th><th>Balance</th><th>Payment</th><th></th></tr>
+      ${bureau.tradelines.map(t => `<tr><td>${esc(t.lender)}<small>${esc(t.type.replace("_", " "))}</small></td><td>${money(t.balance)}</td><td>${money(t.monthly_payment)}/mo</td>
+        <td>${declared.has(t.lender) || t.type === "mortgage" ? `<span class="otag ok">Declared</span>` : `<span class="otag bad">Not declared</span>`}</td></tr>`).join("")}</table>` : `<p class="onote">No debts on the credit report.</p>`}
+     ${a.existing_properties.map(p => `<div class="rental"><b>Rental · ${esc(p.address)}</b><small>Value ${money(p.value)} · mortgage ${money(p.mortgage_balance)} at ${money(p.monthly_mortgage_payment)}/mo · rent ${money(p.monthly_rental_income)}/mo (50% counted)</small></div>`).join("")}`);
+
+  /* deal side */
+  const loanCard = card("loan", "Loan", "🏦", `${money(L.amount)} · ${esc(L.product)} ${L.contract_rate}% · ${L.amortization_years}-yr amortization`, [],
+    `<dl class="kvs two">${row("Loan amount", money(L.amount))}${row("Down payment", money(L.down_payment), `${(L.down_payment / P.purchase_price * 100).toFixed(0)}% of price`)}
+      ${row("Product", esc(L.product), `${L.term_years}-yr term · ${L.amortization_years}-yr amortization`)}${row("Contract rate", `${L.contract_rate}%`, `qualifies at ${r.qualifying_rate}%`)}
+      ${row("Monthly payment", money(r.monthly_payment_contract), `${money(r.monthly_payment_qualifying)} at qualifying rate`)}
+      ${Number(r.insurance_premium) ? row("Insurance premium", money(r.insurance_premium), `total loan ${money(r.total_loan)}`) : row("Insurance", "Conventional", "LTV 80% or less")}</dl>`);
 
   const lendingValue = Math.min(Number(P.purchase_price), Number(P.appraised_value || P.purchase_price));
-  const property = `<dl class="kvs two">
-      ${row("Address", esc(P.address))}${row("Type", esc(P.type.replace("_", " ")), P.living_area_sqft ? `${P.living_area_sqft} sq ft` : "")}
+  const propertyCard = card("property", "Property", "🏠",
+    `${esc(P.address.split(",")[0])} · ${esc(P.type.replace("_", " "))} · ${P.appraised_value ? "appraised " + money(P.appraised_value) : "no appraisal"}`,
+    has("property_type").map(() => "property type"),
+    `<dl class="kvs two">${row("Address", esc(P.address))}${row("Type", esc(P.type.replace("_", " ")), P.living_area_sqft ? `${P.living_area_sqft} sq ft` : "")}
       ${row("Purchase price", money(P.purchase_price))}${row("Appraised value", P.appraised_value ? money(P.appraised_value) : null, fld("appraisal", "marketability") ? `${fld("appraisal", "marketability")} marketability` : "")}
       ${row("Lending value", money(lendingValue), "lower of price and appraisal")}${row("Property tax", money(P.annual_property_tax) + "/yr", money(P.annual_property_tax / 12) + "/mo")}
       ${Number(P.monthly_condo_fees) ? row("Condo fees", money(P.monthly_condo_fees) + "/mo", "50% counted in GDS") : ""}
-      ${row("Heating", P.monthly_heat ? money(P.monthly_heat) + "/mo" : "$100/mo", P.monthly_heat ? "" : "policy default")}</dl>`;
-
-  const loan = `<dl class="kvs two">
-      ${row("Loan amount", money(L.amount))}${row("Down payment", money(L.down_payment), pct(L.down_payment, P.purchase_price) + " of price")}
-      ${row("Product", esc(L.product), `${L.term_years}-yr term · ${L.amortization_years}-yr amortization`)}
-      ${row("Contract rate", `${L.contract_rate}%`)}${row("Qualifying rate", `${r.qualifying_rate}%`, "stress test")}
-      ${row("Monthly payment", money(r.monthly_payment_contract), `${money(r.monthly_payment_qualifying)} at qualifying rate`)}
-      ${Number(r.insurance_premium) ? row("Insurance premium", money(r.insurance_premium), `total loan ${money(r.total_loan)}`) : row("Insurance", "Conventional", "LTV 80% or less")}
-      ${row("Closing date", fmtDay(fld("purchase_agreement", "closing_date")))}</dl>`;
-
-  const qual = `${bar("GDS", r.gds_qualifying, v.limits.gds)}${bar("TDS", r.tds_qualifying, v.limits.tds)}${bar("LTV", r.ltv, 80)}
-      <dl class="kvs two" style="margin-top:14px">${row("Qualifying income", money(r.qualifying_monthly_income) + "/mo")}${row("Other debts", money(r.other_monthly_debts) + "/mo")}</dl>
-      ${v.comparison ? `<p class="onote">${esc(v.comparison.label)}: GDS ${v.comparison.gds}%, TDS ${v.comparison.tds}%</p>` : ""}`;
-
-  const bureau = (docs("credit_bureau")[0] || {fields: {tradelines: []}}).fields.tradelines;
-  const declared = new Set(a.liabilities.map(l => l.lender));
-  const debts = bureau.length || a.existing_properties.length ? `<table class="otable"><tr><th>Debt</th><th>Balance</th><th>Payment</th><th>Source</th></tr>
-      ${bureau.map(t => `<tr><td>${esc(t.lender)}<small>${esc(t.type.replace("_", " "))}</small></td><td>${money(t.balance)}</td><td>${money(t.monthly_payment)}/mo</td>
-        <td>${declared.has(t.lender) || t.type === "mortgage" ? `<span class="otag ok">Declared</span>` : `<span class="otag bad">Not declared</span>`}</td></tr>`).join("")}</table>
-      ${a.existing_properties.map(p => `<div class="rental"><b>Rental · ${esc(p.address)}</b><small>Value ${money(p.value)} · mortgage ${money(p.mortgage_balance)} at ${money(p.monthly_mortgage_payment)}/mo · rent ${money(p.monthly_rental_income)}/mo (50% counted)</small></div>`).join("")}`
-    : `<p class="onote">No debts on the credit report.</p>`;
+      ${row("Heating", P.monthly_heat ? money(P.monthly_heat) + "/mo" : "$100/mo", P.monthly_heat ? "" : "policy default")}</dl>`);
 
   const bank = docs("bank_statement")[0];
-  const deposits = bank ? bank.fields.deposits || [] : [];
-  const big = deposits.filter(d => Number(d.amount) > 5000 && !/payroll|business|rent/i.test(d.description));
-  const funds = `<dl class="kvs two">${row("Down payment needed", money(L.down_payment))}
-      ${row("Bank balance", bank ? money(bank.fields.closing_balance) : null, bank ? esc(bank.fields.period) : "")}
-      ${row("Covers down payment", bank ? (Number(bank.fields.closing_balance) >= Number(L.down_payment) ? "Yes" : "No") : null, bank ? `with ${money(Number(bank.fields.closing_balance) - Number(L.down_payment))} to spare` : "")}
-      ${row("Large deposits", big.length ? `${big.length} unexplained` : "None", big.map(d => `${money(d.amount)} on ${fmtDay(d.date)}`).join(", "), big.length ? "bad" : "")}</dl>`;
+  const deposits = has("large_deposit");
+  const balance = bank ? Number(bank.fields.closing_balance) : null;
+  const fundsCard = card("funds", "Down payment & funds", "💰",
+    `${money(L.down_payment)} (${(L.down_payment / P.purchase_price * 100).toFixed(0)}%) · ${balance == null ? "no bank statement" : balance >= L.down_payment ? "balance covers it" : "balance short"}`,
+    [...deposits.map(() => "1 unexplained deposit"), ...(balance != null && balance < L.down_payment ? ["balance short"] : [])],
+    `<dl class="kvs two">${row("Down payment needed", money(L.down_payment))}
+      ${row("Bank balance", balance == null ? null : money(balance), bank ? esc(bank.fields.period) : "")}
+      ${row("Covers down payment", balance == null ? null : balance >= L.down_payment ? "Yes" : "No", balance == null ? "" : `${money(Math.abs(balance - L.down_payment))} ${balance >= L.down_payment ? "to spare" : "short"}`)}
+      ${row("Large deposits", deposits.length ? `${deposits.length} unexplained` : "None", deposits.map(f => esc(f.detail.split(" · ")[0])).join(", "), deposits.length ? "bad" : "")}</dl>`);
 
-  const broker = `<dl class="kvs two">${row("Application", esc(pos.app_no || "Uploaded manually"))}${row("Source", pos.source ? `<span class="otag">${esc(pos.source)}</span>` : "Upload")}
-      ${row("Broker", esc(pos.broker || "—"), esc(pos.brokerage || ""))}${row("Received", pos.received_min_ago != null ? ago(pos.received_min_ago) : "Just now")}</dl>`;
-
-  return `<div class="ogrid">
-    ${card(`Borrower${a.borrowers.length > 1 ? "s" : ""}`, "👤", borrowers)}
-    ${card("Qualification", "📊", qual)}
-    ${card("Loan", "🏦", loan)}
-    ${card("Property", "🏠", property)}
-    ${card("Debts", "💳", debts)}
-    ${card("Down payment & funds", "💰", funds)}
-    ${card("Broker & source", "📨", broker, true)}
-  </div>`;
+  return `${strip}${qual}
+    <div class="ocolhead"><span>Borrower side</span><span>Deal side
+      <span class="oall"><button class="link" onclick="ovAll(true)">Expand all</button> · <button class="link" onclick="ovAll(false)">Collapse all</button></span></span></div>
+    <div class="ocols"><div class="ocol">${borrowersCard}${debtsCard}</div><div class="ocol">${loanCard}${propertyCard}${fundsCard}</div></div>`;
 }
+
+/* ---------- decision: one control in the loan header, a panel that slides in from the right ---------- */
+const DTONE = {approve: "good", approve_conditions: "good", counter_offer: "attn", refer: "attn", hold: "attn", decline: "bad", withdrawn: "muted"};
+function decisionControl(rv) {
+  if (!rv.decision) return `<button class="decbtn" onclick="openDecision()">Make decision</button>`;
+  const d = rv.decision;
+  return `<button class="decbtn decided ${DTONE[d.type]}" onclick="openDecision()"><small>Decision${d.sent_at ? " · sent" : ""}</small>${esc(d.label)}</button>`;
+}
+
+const REC_LABEL = {approve: "Approve", approve_with_conditions: "Approve with conditions", refer_for_review: "Refer for review", decline: "Decline"};
+let decPick = null, whatIfTimer = null;
+function openDecision() {
+  const v = view, rv = v.review, f = rv.facts, d = rv.decision;
+  const dlg = $("#dlg"); dlg.className = "drawer";
+  const check = (ok, text, link) => `<li class="${ok ? "ok" : "no"}"><span>${ok ? "✓" : "!"}</span>${text}${!ok && link ? ` ${link}` : ""}</li>`;
+  const header = `<div class="dhead"><div><small>${esc(v.pos?.app_no || "")} · ${esc(v.application.borrowers.map(b => b.name).join(" & "))}</small><h3>Decision</h3></div>
+    <button class="dclose" onclick="$('#dlg').close()" aria-label="Close">✕</button></div>`;
+  if (d) {
+    $("#dlgBody").innerHTML = `${header}
+      <div class="dcurrent ${DTONE[d.type]}"><small>Recorded ${esc(d.at.replace("T", " ").slice(0, 16))} by ${esc(d.by)}</small><b>${esc(d.label)}</b>
+        ${d.reasons?.length ? `<p>${d.reasons.map(esc).join(" · ")}</p>` : ""}${d.note ? `<p>“${esc(d.note)}”</p>` : ""}
+        ${d.follow_up ? `<p>Follow up ${fmtDay(d.follow_up)}</p>` : ""}${d.terms ? `<p>Terms: ${d.terms.amount ? money(d.terms.amount) : ""}${d.terms.amortization ? ` · ${d.terms.amortization}-yr amortization` : ""}</p>` : ""}</div>
+      <p class="small muted">${d.sent_at ? "The decision letter was sent to the broker, so the decision is final in this prototype."
+        : `The decision letter is drafted in ${`<button class="link" onclick="$('#dlg').close(); setTab('broker')">Broker Communication</button>`}. Nothing has gone to the broker yet.`}</p>
+      <div class="dfoot">${d.sent_at ? "" : `<button onclick="clearDecision()">Change decision</button>`}<button class="primary" onclick="$('#dlg').close(); setTab('broker')">Go to Broker Communication</button></div>`;
+    dlg.showModal(); return;
+  }
+  const opts = rv.decision_options;
+  decPick = decPick && opts.find(o => o.id === decPick && o.allowed) ? decPick : (opts.find(o => o.suggested && o.allowed) || {}).id || null;
+  $("#dlgBody").innerHTML = `${header}
+    <div class="drec"><small>Agent recommendation · advisory</small><b>${REC_LABEL[v.recommendation]}</b>
+      <ul>${v.recommendation_reasons.slice(0, 4).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>
+    <h4>File check</h4>
+    <ul class="dcheck">
+      ${check(!f.open_issues, f.open_issues ? `${f.open_issues} issue${f.open_issues > 1 ? "s" : ""} not reviewed` : "All issues reviewed", `<button class="link" onclick="$('#dlg').close(); setTab('issues')">Review</button>`)}
+      ${check(!f.critical, f.critical ? "Possible fraud on the file" : "No fraud signals")}
+      ${check(!f.over_policy, f.over_policy ? "A ratio is over policy" : "Ratios within policy")}
+      ${check(!f.unconfirmed_docs, f.unconfirmed_docs ? "Hard-to-read document not checked" : "Documents checked", `<button class="link" onclick="$('#dlg').close(); setTab('docs')">Check</button>`)}
+      ${check(!f.outstanding, f.outstanding ? `${f.outstanding} condition${f.outstanding > 1 ? "s" : ""} outstanding` : "No outstanding conditions")}
+    </ul>
+    <h4>Decision</h4>
+    <div class="dopts">${opts.map(o => `<label class="dopt ${o.allowed ? "" : "off"} ${o.id === decPick ? "on" : ""}">
+        <input type="radio" name="dec" value="${o.id}" ${o.allowed ? "" : "disabled"} ${o.id === decPick ? "checked" : ""}>
+        <span class="ddot ${o.tone}"></span><span class="dtxt"><b>${o.label}${o.suggested ? `<em>Suggested</em>` : ""}</b>
+        <small>${o.allowed ? esc(o.desc) : "Not available: " + o.blocked.map(esc).join("; ")}</small></span></label>`).join("")}</div>
+    <div id="dfields"></div>
+    <p class="derr" id="derr"></p>
+    <div class="dfoot"><button onclick="$('#dlg').close()">Cancel</button><button class="primary" id="dsave" ${decPick ? "" : "disabled"}>Record decision</button></div>`;
+  dlg.showModal();
+  dlg.querySelectorAll('input[name="dec"]').forEach(i => i.onchange = () => { decPick = i.value;
+    dlg.querySelectorAll(".dopt").forEach(l => l.classList.toggle("on", l.querySelector("input").value === decPick)); $("#dsave").disabled = false; decisionFields(); });
+  $("#dsave").onclick = saveDecision;
+  decisionFields();
+}
+
+function decisionFields() {
+  const o = view.review.decision_options.find(x => x.id === decPick), L = view.application.loan;
+  if (!o) { $("#dfields").innerHTML = ""; return; }
+  $("#dfields").innerHTML = `
+    ${o.reasons.length ? `<label>${o.id === "decline" ? "Reasons (shown to the broker in plain wording)" : "Reason"}</label>
+      <div class="dreasons">${o.reasons.map(r => `<label class="dchip"><input type="checkbox" value="${esc(r)}"> ${esc(r)}</label>`).join("")}</div>` : ""}
+    ${o.id === "counter_offer" ? `<div class="dterms"><div><label>Loan amount</label><input id="dAmount" type="number" step="1000" value="${Number(L.amount)}"></div>
+      <div><label>Amortization (years)</label><input id="dAmort" type="number" min="5" max="30" value="${L.amortization_years}"></div></div>
+      <div class="dwhatif" id="dwhatif">Change the terms to see the ratios.</div>` : ""}
+    ${o.id === "hold" ? `<label>Follow up on</label><input id="dFollow" type="date" value="${new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10)}">` : ""}
+    <label>${o.id === "refer" ? "Note for the senior underwriter (required)" : "Note (optional, saved to the audit trail)"}</label>
+    <textarea id="dNote" rows="3" placeholder="${o.id === "refer" ? "What should they look at?" : ""}"></textarea>`;
+  if (o.id === "counter_offer") { ["dAmount", "dAmort"].forEach(id => $("#" + id).oninput = whatIf); whatIf(); }
+}
+
+function whatIf() {
+  clearTimeout(whatIfTimer);
+  whatIfTimer = setTimeout(async () => {
+    const q = new URLSearchParams({amount: $("#dAmount").value, amortization: $("#dAmort").value});
+    const w = await (await fetch(`/api/uploads/${batch}/whatif?${q}`)).json();
+    $("#dwhatif").className = "dwhatif " + (w.within_policy ? "ok" : "no");
+    $("#dwhatif").innerHTML = `At these terms: <b>GDS ${w.gds}%</b> · <b>TDS ${w.tds}%</b> · LTV ${w.ltv}% · payment ${money(w.payment)}/mo
+      <span>${w.within_policy ? "✓ Within policy" : "✗ Still over policy"}</span>`;
+  }, 250);
+}
+
+async function saveDecision() {
+  const body = {kind: "decide", action: decPick, note: $("#dNote")?.value || null,
+    reasons: [...document.querySelectorAll(".dreasons input:checked")].map(i => i.value)};
+  if (decPick === "hold") body.follow_up = $("#dFollow").value;
+  if (decPick === "counter_offer") body.terms = {amount: Number($("#dAmount").value), amortization: Number($("#dAmort").value)};
+  const r = await fetch(`/api/uploads/${batch}/action`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  const data = await r.json();
+  if (!r.ok) { $("#derr").textContent = data.detail; return; }
+  view = data; decPick = null; $("#dlg").close(); render();
+  toast(`✓ Decision recorded: ${data.review.decision.label}. Letter drafted in Broker Communication.`);
+}
+
+async function clearDecision() { $("#dlg").close(); await act({kind: "decide", action: "clear"}); openDecision(); }
 
 /* ---------- actions ---------- */
 /* broker report: same structure the email is built from */
@@ -712,7 +922,7 @@ async function act(body) { view = await api(`/api/uploads/${batch}/action`, body
 
 function previewMsg(kind) {
   const m = kind === "send_request" ? view.review.request_draft : view.review.draft;
-  const label = kind === "send_request" ? "Document request" : "Review report & conditions";
+  const label = kind === "send_request" ? "Document request" : m.kind === "decision" ? "Decision letter" : "Review report & conditions";
   const d = $("#dlg"); d.className = "";
   $("#dlgBody").innerHTML = `<h3>Preview: ${label}</h3><p class="muted small" style="margin:0">This is exactly what the broker will receive.</p>
     <div class="email">

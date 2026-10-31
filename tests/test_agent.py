@@ -207,3 +207,53 @@ def test_declining_a_document_read_unblocks_sending_but_keeps_it_flagged(client)
     r = act({"kind": "confirm_doc", "target": "bank", "action": "decline", "reason": "Amounts illegible"}).json()
     assert r["review"]["declined_docs"] == ["bank"] and r["review"]["blockers"] == []
     assert any("legible copy" in c["text"] for c in r["conditions"])
+
+
+def decide(client, batch, decision, **extra):
+    return client.post(f"/api/uploads/{batch}/action", json={"kind": "decide", "action": decision, **extra})
+
+
+def test_critical_flag_blocks_approval_and_suggests_referral(client):
+    batch, v = upload_case(client, "case05")
+    opts = {o["id"]: o for o in v["review"]["decision_options"]}
+    assert not opts["approve_conditions"]["allowed"] and "fraud" in opts["approve_conditions"]["blocked"][0]
+    assert opts["refer"]["suggested"] and opts["decline"]["allowed"]
+    assert decide(client, batch, "approve_conditions").status_code == 422
+
+
+def test_clean_file_can_be_approved_and_letter_sent(client):
+    batch, v = upload_case(client, "case01")
+    r = decide(client, batch, "approve").json()
+    assert r["review"]["decision"]["label"] == "Approve"
+    assert r["review"]["draft"]["subject"].endswith("commitment") and "approved" in r["review"]["draft"]["body"]
+    sent = client.post(f"/api/uploads/{batch}/action", json={"kind": "approve"}).json()
+    assert sent["review"]["decision"]["sent_at"] and sent["review"]["draft"] is None
+    assert client.get("/api/reviewed").json()[0]["outcome"] == "Approve"
+
+
+def test_decline_needs_reasons_and_letter_hides_fraud(client):
+    batch, _ = upload_case(client, "case05")
+    assert decide(client, batch, "decline").status_code == 422
+    r = decide(client, batch, "decline", reasons=["Suspected misrepresentation"]).json()
+    body = r["review"]["draft"]["body"].lower()
+    assert "unable to verify information" in body and "fraud" not in body and "misrepresentation" not in body
+
+
+def test_counter_offer_must_bring_ratios_within_policy(client):
+    batch, v = upload_case(client, "case03")   # TDS 45.65% with the undisclosed car loan
+    for f in v["flags"]:
+        client.post(f"/api/uploads/{batch}/action", json={"kind": "flag", "target": f["id"], "action": "confirm"})
+    assert decide(client, batch, "counter_offer", terms={"amount": 405000}).status_code == 422
+    what = client.get(f"/api/uploads/{batch}/whatif", params={"amount": 360000}).json()
+    assert what["within_policy"]
+    r = decide(client, batch, "counter_offer", terms={"amount": 360000}).json()
+    assert D(r["ratios"]["tds_qualifying"]) <= 44 and "counter-offer" in r["review"]["draft"]["subject"]
+
+
+def test_hold_needs_follow_up_and_decision_can_be_cleared(client):
+    batch, _ = upload_case(client, "case06")
+    assert decide(client, batch, "hold", reasons=["Waiting on documents"]).status_code == 422
+    r = decide(client, batch, "hold", reasons=["Waiting on documents"], follow_up="2026-11-06").json()
+    assert "on hold" in r["review"]["draft"]["subject"]
+    cleared = decide(client, batch, "clear").json()
+    assert cleared["review"]["decision"] is None

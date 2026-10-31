@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from underwriting import agent, broker
+from underwriting import agent, broker, decisions
 from underwriting.demo_cases import CASES, REVIEWED, get_case
 
 ROOT = Path(__file__).parent.parent
@@ -71,12 +71,24 @@ def _view(batch_id: str) -> dict:
     unconfirmed = [d for d in low_conf if d not in st["confirmed_docs"] and d not in st["declined_docs"]]
     blockers = ([f"review {len(open_flags)} issue{'s' * (len(open_flags) != 1)}"] if open_flags else []) + \
                ([f"confirm {len(unconfirmed)} hard-to-read document{'s' * (len(unconfirmed) != 1)}"] if unconfirmed else [])
-    return {**result, "batch_id": batch_id, "uploads": st["uploads"], "review": {
+    decision = st["decision"]
+    if decision and decision["type"] in ("refer", "hold", "decline", "withdrawn"):
+        blockers = []   # these letters don't depend on the review being finished
+    review = {
         "flag_reviews": st["flag_reviews"], "condition_reviews": st["condition_reviews"],
         "confirmed_docs": sorted(st["confirmed_docs"]), "declined_docs": sorted(st["declined_docs"]), "overrides": st["overrides"], "audit": st["audit"],
-        "approved": st["approved"], "blockers": blockers, "reason_codes": REASON_CODES,
-        "messages": st["messages"], "draft": broker.review_message(result, st["condition_reviews"], requested),
-        "request_draft": None if st["request_sent"] else broker.document_request(result)}}
+        "approved": st["approved"], "blockers": blockers, "reason_codes": REASON_CODES, "messages": st["messages"],
+        "request_draft": None if st["request_sent"] or decision else broker.document_request(result), "decision": decision}
+    if decision and not decision.get("sent_at"):
+        review["draft"] = broker.decision_message(result, decision, st["condition_reviews"], requested, decisions.DECLINE_REASONS)
+    elif not st["approved"] and not decision:
+        review["draft"] = broker.review_message(result, st["condition_reviews"], requested)
+    else:
+        review["draft"] = None
+    review["report"] = broker.review_report(result, st["condition_reviews"], requested)
+    review["decision_options"] = decisions.options(result, review)
+    review["facts"] = decisions.file_facts(result, review)
+    return {**result, "batch_id": batch_id, "uploads": st["uploads"], "review": review}
 
 
 @app.get("/")
@@ -107,15 +119,17 @@ def reviewed():
     """Files sent to the broker in this session, newest first, followed by earlier (dummy) reviews."""
     out = []
     for st in reversed(list(BATCHES.values())):
-        if not st["approved"]:
+        if not (st["approved"] or st["decision"]):
             continue
         case = get_case(st["case_id"])
         app_, pos = case["application"], case["pos"]
         started = datetime.fromisoformat(st["audit"][0]["at"])
-        sent = datetime.fromisoformat(st["approved"]["at"])
+        sent = datetime.fromisoformat((st["decision"] or st["approved"])["at"])
         out.append({"app_no": pos["app_no"], "source": pos["source"], "borrowers": [b["name"] for b in app_["borrowers"]],
-                    "address": app_["property"]["address"], "loan_amount": app_["loan"]["amount"],
-                    "broker": pos["broker"], "brokerage": pos["brokerage"], "outcome": "Conditions sent",
+                    "address": app_["property"]["address"],
+                    "loan_amount": ((st["decision"] or {}).get("terms") or {}).get("amount") or app_["loan"]["amount"],
+                    "broker": pos["broker"], "brokerage": pos["brokerage"],
+                    "outcome": decisions.LABELS[st["decision"]["type"]] if st["decision"] else "Conditions sent",
                     "reviewed_by": "You", "turnaround_min": max(1, round((sent - started).total_seconds() / 60)),
                     "reviewed_min_ago": 0})
     return out + REVIEWED
@@ -126,7 +140,7 @@ def new_batch():
     batch_id = f"b{len(BATCHES) + 1:04d}"
     BATCHES[batch_id] = {"uploads": [], "filenames": set(), "case_id": None, "overrides": {}, "dismissed": set(),
                          "flag_reviews": {}, "condition_reviews": {}, "confirmed_docs": set(), "declined_docs": set(), "audit": [],
-                         "messages": [], "approved": None, "request_sent": False}
+                         "messages": [], "approved": None, "request_sent": False, "decision": None}
     return {"batch_id": batch_id}
 
 
@@ -177,18 +191,38 @@ def get_review(batch_id: str):
     return _view(batch_id)
 
 
+@app.get("/api/uploads/{batch_id}/whatif")
+def what_if(batch_id: str, amount: float | None = None, amortization: int | None = None):
+    """Ratios for counter-offer terms, without changing the file."""
+    st = _batch(batch_id)
+    overrides = {**st["overrides"], **({"loan:amount": {"value": amount}} if amount else {}),
+                 **({"loan:amortization": {"value": amortization}} if amortization else {})}
+    result = agent.run(_case_for(st), overrides, st["dismissed"])
+    over = [f["title"] for f in result["flags"] if f["id"].startswith("policy:")]
+    r = result["ratios"]
+    return {"gds": r["gds_qualifying"], "tds": r["tds_qualifying"], "ltv": r["ltv"], "payment": r["monthly_payment_contract"],
+            "within_policy": not over, "over": over}
+
+
 class Action(BaseModel):
-    kind: Literal["flag", "condition", "override", "confirm_doc", "send_request", "approve"]
+    kind: Literal["flag", "condition", "override", "confirm_doc", "send_request", "approve", "decide"]
     target: str = ""
     action: str = ""  # flag: confirm | reject | escalate | undo; condition: accept | edit | reject | fulfill
     value: str | None = None
     reason: str | None = None
+    reasons: list[str] = []          # decide
+    note: str | None = None          # decide
+    follow_up: str | None = None     # decide: hold
+    terms: dict | None = None        # decide: counter_offer {amount, amortization}
 
 
 @app.post("/api/uploads/{batch_id}/action")
 def act(batch_id: str, a: Action):
     st = _batch(batch_id)
-    if st["approved"]:
+    decision_open = st["decision"] and not st["decision"].get("sent_at")
+    if a.kind == "decide":
+        return _decide(batch_id, st, a)
+    if st["approved"] and not (a.kind == "approve" and decision_open):
         raise HTTPException(409, "Already sent to the broker")
     needs_reason = (a.kind == "flag" and a.action == "reject") or a.kind == "override" or \
                    (a.kind == "condition" and a.action in ("edit", "reject"))
@@ -235,13 +269,51 @@ def act(batch_id: str, a: Action):
         st["messages"].append({**request, "at": _now()})
         st["request_sent"] = True
         _log(st, "Underwriter", f"Sent document request to broker ({len(request['condition_ids'])} items)")
-    elif a.kind == "approve":
+    elif a.kind == "approve":   # send the current draft: the decision letter if there is one, else the conditions
         view = _view(batch_id)
         if view["review"]["blockers"]:
             raise HTTPException(409, "Before sending: " + "; ".join(view["review"]["blockers"]))
+        if not view["review"]["draft"]:
+            raise HTTPException(409, "Nothing to send")
         message = {**view["review"]["draft"], "at": _now()}
-        st["request_sent"] = True   # the conditions message covers any unsent document request
+        st["request_sent"] = True   # the full message covers any unsent document request
         st["messages"].append(message)
-        st["approved"] = {"at": message["at"], "conditions": message["condition_ids"]}
-        _log(st, "Underwriter", f"Approved and sent conditions to broker ({len(message['condition_ids'])} conditions)")
+        if decision_open:
+            st["decision"]["sent_at"] = message["at"]
+        st["approved"] = st["approved"] or {"at": message["at"], "conditions": message["condition_ids"]}
+        _log(st, "Underwriter", f"Sent to broker: {message['subject']}")
+    return _view(batch_id)
+
+
+def _decide(batch_id: str, st: dict, a: Action) -> dict:
+    """Record (or clear) the underwriter's decision. A counter-offer also restructures the loan for the ratios."""
+    if a.action == "clear":
+        if st["decision"] and st["decision"].get("sent_at"):
+            raise HTTPException(409, "The decision letter has already been sent")
+        st["decision"] = None
+        st["overrides"].pop("loan:amount", None)
+        st["overrides"].pop("loan:amortization", None)
+        _log(st, "Underwriter", "Decision cleared")
+        return _view(batch_id)
+    if st["decision"] and st["decision"].get("sent_at"):
+        raise HTTPException(409, "The decision letter has already been sent")
+    view = _view(batch_id)
+    error = decisions.validate(a.action, a.reasons, a.note, a.follow_up, a.terms, view, view["review"])
+    if error:
+        raise HTTPException(422, error)
+    if a.action == "counter_offer":
+        previous = {k: st["overrides"].get(k) for k in ("loan:amount", "loan:amortization")}
+        if a.terms.get("amount"):
+            st["overrides"]["loan:amount"] = {"value": float(a.terms["amount"]), "reason": "Counter-offer"}
+        if a.terms.get("amortization"):
+            st["overrides"]["loan:amortization"] = {"value": int(a.terms["amortization"]), "reason": "Counter-offer"}
+        over = [f["title"] for f in _view(batch_id)["flags"] if f["id"].startswith("policy:")]
+        if over:
+            for k, v in previous.items():
+                st["overrides"].pop(k, None) if v is None else st["overrides"].__setitem__(k, v)
+            raise HTTPException(422, "Counter-offer terms are still outside policy: " + "; ".join(over))
+    st["decision"] = {"type": a.action, "label": decisions.LABELS[a.action], "reasons": a.reasons, "note": a.note,
+                      "follow_up": a.follow_up, "terms": a.terms, "at": _now(), "by": "You"}
+    _log(st, "Underwriter", f"Decision: {decisions.LABELS[a.action]}"
+         + (f" ({', '.join(a.reasons)})" if a.reasons else "") + (f". Note: {a.note}" if a.note else ""))
     return _view(batch_id)
