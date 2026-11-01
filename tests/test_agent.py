@@ -300,3 +300,11 @@ def test_primary_demo_file_reports_the_missing_employment_letter():
     assert "low_confidence:id1" in {f["id"] for f in r["flags"]}
     assert any("legible copy" in c["text"] for c in r["conditions"])
     assert r["ratios"]["tds_qualifying"] == "45.65"
+
+
+def test_every_inbox_file_has_a_label_and_expected_behaviour(client):
+    for sample in client.get("/api/samples").json():
+        assert sample["tag"]
+    report = evals.run_all()
+    assert all(f["tag"] and f["should"] and f["passes_if"] for f in report["files"])
+    assert {f["tag"] for f in report["files"]} >= {"Happy path", "Happy path with issues", "Boundary: must refuse"}

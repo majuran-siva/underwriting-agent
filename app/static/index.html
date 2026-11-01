@@ -34,17 +34,29 @@ code { font-size: 13px; background: var(--surface-soft); padding: 1px 6px; borde
 .mainnav button:hover { color: var(--on-dark); background: rgba(255,255,255,.08); }
 .mainnav button.on { color: #fff; background: rgba(255,255,255,.14); }
 .usermenu { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; font: 600 13px/1 var(--sans); }
-.demo-note { background: var(--ochre-soft); border-radius: var(--r-sm); padding: 12px 16px; margin: 0 0 24px; }
-.dcard { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--r-xl); padding: 24px; }
-.evrow { border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--card); margin-bottom: 8px; }
-.evrow summary { display: grid; grid-template-columns: 2.4fr 1.1fr 1.1fr 72px 72px; gap: 12px; align-items: center; padding: 14px 16px; cursor: pointer; color: var(--body); font: inherit; }
-.evhead { display: grid; grid-template-columns: 2.4fr 1.1fr 1.1fr 72px 72px; gap: 12px; padding: 0 17px 8px; font-size: 13px; color: var(--muted); }
-.evrow summary small { display: block; color: var(--muted); }
-.evrow table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.evrow td, .evrow th { text-align: left; padding: 8px 16px; border-top: 1px solid var(--hairline); overflow-wrap: anywhere; }
+.casetag { display: inline-block; font: 600 11px/1.3 var(--sans); letter-spacing: .3px; text-transform: uppercase; color: var(--primary); }
+.casetag.refuse { color: var(--coral); }
+.evaltitle { font: 500 26px/1.2 var(--sans); color: var(--ink); margin: 0 0 6px; }
+.evalpills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.evalpills span { padding: 4px 12px; border-radius: 999px; font-size: 13px; background: var(--surface-card); }
+.evalpills .ok { background: var(--success-bg); color: var(--success); }
+.evalpills .attn { background: var(--ochre-soft); }
+.evalpills .bad { background: var(--coral-soft); color: var(--coral); }
+.evalactions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.evalcase { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 24px; padding: 18px 0; border-top: 1px solid var(--hairline); }
+.evalcase h3 { margin: 4px 0 2px; font: 500 16px/1.3 var(--sans); color: var(--ink); }
+.evalcase h4 { margin: 0 0 6px; font: 500 14px/1.3 var(--sans); color: var(--ink); }
+.evalcase ul { margin: 4px 0; padding-left: 18px; }
+.evalcase p { margin: 8px 0 4px; }
+.evalcase label { display: block; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+.evalcase select, .evalcase input { width: 100%; padding: 8px 10px; margin-bottom: 10px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); font: inherit; background: var(--card); }
+.evalcase table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0; }
+.evalcase td { padding: 4px 6px; border-top: 1px solid var(--hairline); overflow-wrap: anywhere; }
 .pf { font-weight: 500; }
 .pf.pass { color: var(--success); }
 .pf.fail { color: var(--coral); }
+.demo-note { background: var(--ochre-soft); border-radius: var(--r-sm); padding: 12px 16px; margin: 0 0 24px; }
+.dcard { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--r-xl); padding: 24px; }
 header { height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 48px; background: var(--dark); border-bottom: 0; position: sticky; top: 0; z-index: 10; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .logo { width: 30px; height: 30px; flex: none; }
@@ -409,6 +421,7 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
 @media (max-width: 760px) {
   header .brand > div { display: none; }
   header { gap: 6px; }
+  .evalcase { grid-template-columns: 1fr; }
   .decisionbar { padding: 10px 16px; }
   .decisionbar span { font-size: 13px; }
   .decisionbar .inner { flex-direction: column; align-items: stretch; gap: 8px; }
@@ -417,9 +430,6 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .kpis span { white-space: normal; }
   .mainnav { margin-left: 0; }
   .mainnav button { padding: 8px 6px; font-size: 13px; }
-  .evhead { display: none; }
-  .evrow summary { grid-template-columns: 1fr auto; }
-  .evrow summary .evcol { display: none; }
 }
 </style>
 </head>
@@ -482,7 +492,7 @@ async function startScreen(which) {
          <div><b>${done.filter(r => r.outcome === "Conditions sent").length}</b><span>Conditions sent</span></div></div>`;
   const src = r => `<span class="src">${esc(r.source)}</span>`;
   const newRows = rows.map(r => `<div class="qrow" role="row" onclick="sendSample('${r.id}')">
-      <span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
+      <span><span class="${tagClass(r.tag)}">${esc(r.tag)}</span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
       <span>${src(r.pos)}</span>
       <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)} · ${esc(r.income_type)}</small></span>
       <span><b>${money(r.loan_amount)}</b><small>of ${money(r.purchase_price)}</small></span>
@@ -521,32 +531,61 @@ async function startScreen(which) {
 $("#picker").onchange = e => { uploadFiles([...e.target.files]); e.target.value = ""; };
 
 /* ---------- eval ---------- */
+const evalRuns = {}, evalJudged = {};
+const tagClass = t => "casetag" + (t.includes("must refuse") ? " refuse" : "");
+const actualText = f => `Recommended ${f.actual}. GDS ${f.gds}%, TDS ${f.tds}%, LTV ${f.ltv}%. `
+  + (f.flags.length ? `Flagged: ${f.flags.join("; ")}. ` : "No issues raised. ")
+  + `${f.conditions} conditions drafted. Answer key: ${f.checks.filter(c => c.passed).length} of ${f.checks.length} checks matched.`;
 const evalValue = v => esc(Array.isArray(v) ? (v.join(", ") || "None") : v === true ? "Yes" : v === false ? "No" : v);
-async function evalScreen(report) {
+let evalFiles = null;
+async function evalScreen() {
   view = null; setNav("eval");
-  const kpis = report ? `<div class="kpis"><div><b>${report.files_passed} of ${report.files_total}</b><span>Files passed</span></div>
-      <div><b>${report.checks_passed} of ${report.checks_total}</b><span>Checks passed</span></div></div>` : "";
-  const rows = report ? `<div class="evhead"><span>File</span><span>Expected</span><span>Agent</span><span>Checks</span><span>Result</span></div>` + report.files.map(f => {
-    const ok = f.checks.filter(c => c.passed).length;
-    return `<details class="evrow"><summary><span><b>${esc(f.title)}</b><small>${esc(f.app_no)}</small></span>
-        <span class="evcol">${esc(f.expected)}</span><span class="evcol">${esc(f.actual)}</span><span class="evcol">${ok}/${f.checks.length}</span>
-        <span class="pf ${f.passed ? "pass" : "fail"}">${f.passed ? "Pass" : "Fail"}</span></summary>
-      <table><tr><th>Check</th><th>Expected</th><th>Agent</th><th>Result</th></tr>${f.checks.map(c => `<tr><td>${esc(c.name)}</td><td>${evalValue(c.expected)}</td><td>${evalValue(c.actual)}</td>
-        <td class="pf ${c.passed ? "pass" : "fail"}">${c.passed ? "Pass" : "Fail"}</td></tr>`).join("")}</table></details>`; }).join("")
-    : `<div class="dcard"><p style="margin:0">Runs the agent on every file in the inbox and compares each result with the answer set for that file.</p></div>`;
-  $("#app").innerHTML = `
-    <section class="band block night"><div class="inner queuehead">
-      <div><h1 class="display">Eval</h1><p class="lede" style="margin:0">Does the agent get each inbox file right?</p></div>${kpis}
-    </div></section>
-    <section class="band light tight"><div class="inner">
-      <div class="listbar"><span></span><button class="primary" id="runEval" onclick="runEval()">${report ? "Run again" : "Run eval"}</button></div>
-      <p class="demo-note"><b>What this proves.</b> It tests the agent’s checks, math and rules. Document reading is simulated in this prototype, so it doesn’t test reading accuracy on real documents.</p>
-      ${rows}
-    </div></section>`;
+  if (!evalFiles) evalFiles = (await api("/api/eval")).files.map(({id, app_no, tag, label, should, passes_if, borrowers}) => ({id, app_no, tag, label, should, passes_if, borrowers}));
+  renderEval();
 }
-async function runEval() {
-  const btn = $("#runEval"); btn.disabled = true; btn.textContent = "Running…";
-  evalScreen(await api("/api/eval"));
+function renderEval() {
+  const n = evalFiles.length, verdicts = evalFiles.map(f => evalJudged[f.id]?.verdict).filter(Boolean);
+  const count = v => verdicts.filter(x => x === v).length;
+  const open = {};
+  document.querySelectorAll(".evaldetail").forEach(d => { open[d.dataset.id] = d.open; });
+  $("#app").innerHTML = `
+    <section class="band light tight"><div class="inner"><div class="dcard">
+      <h1 class="evaltitle">Eval</h1>
+      <p style="margin:0 0 14px">Each run fills in what actually happened. Only you choose the verdict; the agent never grades itself.</p>
+      <div class="evalpills"><span>${verdicts.length}/${n} judged</span><span class="ok">${count("Pass")} pass</span><span class="attn">${count("Needs work")} needs work</span><span class="bad">${count("Fail")} fail</span></div>
+      <div class="evalactions"><button class="primary" id="runAll" onclick="runAllEvals()">Run all ${n} tests</button><button onclick="copyEval()">Copy results</button><span class="small muted" id="copyMsg" role="status"></span></div>
+      <p class="small muted">Verdicts last for this visit only. Document reading is simulated, so this tests the checks, math and rules, not reading accuracy on real documents.</p>
+      ${evalFiles.map((f, i) => { const run = evalRuns[f.id], j = evalJudged[f.id] || {};
+        return `<div class="evalcase">
+          <div><span class="${tagClass(f.tag)}">${esc(f.tag)}</span><h3>C${i + 1} · ${esc(f.label)}</h3><small class="muted">${esc(f.app_no)} · ${esc(f.borrowers)}</small>
+            <p class="small"><b>Expected:</b></p><ul class="small">${f.should.map(x => `<li>${esc(x)}</li>`).join("")}</ul><p class="small">Passes if: ${esc(f.passes_if)}</p></div>
+          <div><h4>Actual</h4><p class="small">${run ? esc(actualText(run)) : "Not run yet."}</p>
+            ${run ? `<details class="evaldetail" data-id="${f.id}" ${open[f.id] ? "open" : ""}><summary class="small">Answer key checks</summary><table>${run.checks.map(c => `<tr><td>${esc(c.name)}</td><td>${evalValue(c.expected)}</td><td>${evalValue(c.actual)}</td><td class="pf ${c.passed ? "pass" : "fail"}">${c.passed ? "Match" : "Differs"}</td></tr>`).join("")}</table></details>` : ""}
+            <button id="run-${f.id}" onclick="runEval('${f.id}')">${run ? "Run again" : "Run test"}</button></div>
+          <div><label for="v-${f.id}">Your verdict</label><select id="v-${f.id}" onchange="judge('${f.id}', 'verdict', this.value)"><option value="">Not judged</option>${["Pass", "Needs work", "Fail"].map(x => `<option ${j.verdict === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+            <label for="n-${f.id}">Note</label><input id="n-${f.id}" value="${esc(j.note || "")}" oninput="judge('${f.id}', 'note', this.value)"></div></div>`; }).join("")}
+    </div></div></section>`;
+}
+function judge(id, key, value) {
+  evalJudged[id] = {...evalJudged[id], [key]: value};
+  if (key === "verdict") renderEval();
+}
+async function runEval(id) {
+  const btn = $(`#run-${id}`); btn.disabled = true; btn.textContent = "Running…";
+  evalRuns[id] = await api(`/api/eval/${id}`);
+  renderEval();
+}
+async function runAllEvals() {
+  const btn = $("#runAll"); btn.disabled = true; btn.textContent = "Running…";
+  (await api("/api/eval")).files.forEach(f => { evalRuns[f.id] = f; });
+  renderEval();
+}
+function copyEval() {
+  const text = ["ClearLine eval results", ""].concat(evalFiles.flatMap((f, i) => { const r = evalRuns[f.id], j = evalJudged[f.id] || {};
+    return [`C${i + 1} · ${f.tag} · ${f.label}`, "Expected:", ...f.should.map(x => "- " + x), "Passes if: " + f.passes_if,
+      "Actual: " + (r ? actualText(r) : "Not run"), "Verdict (mine): " + (j.verdict || "Not judged"), "Note: " + (j.note || "None"), ""]; })).join("\n");
+  const done = ok => { $("#copyMsg").textContent = ok ? "Copied." : "Copy failed."; };
+  navigator.clipboard.writeText(text).then(() => done(true), () => done(false));
 }
 
 async function sendSample(id) {
