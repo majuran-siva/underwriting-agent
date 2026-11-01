@@ -550,6 +550,7 @@ let evalFiles = null;
 async function evalScreen() {
   view = null; setNav("eval");
   if (!evalFiles) evalFiles = (await api("/api/eval")).files.map(({id, app_no, tag, label, should, passes_if, borrowers}) => ({id, app_no, tag, label, should, passes_if, borrowers}));
+  if (!Object.keys(evalRuns).length) (await api("/api/eval")).files.forEach(f => { evalRuns[f.id] = f; });   // show real results on arrival
   renderEval();
 }
 function renderEval() {
