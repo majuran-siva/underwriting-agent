@@ -141,9 +141,9 @@ CASES: list[dict] = [
     },
     {
         "id": "case03",
-        "title": "Salaried – undisclosed car loan and missing employment letter",
-        "summary": "Townhouse purchase. The bureau shows a car loan the application leaves out, and the employment letter is missing.",
-        "planted": ["undisclosed_debt", "missing_document"],
+        "title": "Salaried – undisclosed car loan, missing letter and blurry ID",
+        "summary": "Townhouse purchase. The bureau shows a car loan the application leaves out, the employment letter is missing, and the ID photo is blurry.",
+        "planted": ["undisclosed_debt", "missing_document", "low_confidence"],
         "application": {
             "borrowers": [{"name": "Hannah Lefebvre", "credit_score": 718,
                            "incomes": [{"type": "salary", "annual_amount": "105000", "employer": "Vantage Civil Engineering"}]}],
@@ -172,7 +172,8 @@ CASES: list[dict] = [
             doc("appr", "appraisal", "Appraisal report", "appraisal.pdf",
                 {"value": "520000", "property_type": "townhouse", "marketability": "good"}),
             doc("tax", "property_tax", "Property tax bill", "tax.pdf", {"annual_tax": "4200"}),
-            doc("id1", "id", "Driver's licence – Hannah Lefebvre", "IMG_2201.jpg", {"name": "Hannah Lefebvre"}),
+            doc("id1", "id", "Driver's licence – Hannah Lefebvre", "IMG_2201.jpg", {"name": "Hannah Lefebvre"},
+                confidence=0.55, quality_note="Phone photo, skewed and blurred; details partly illegible"),
         ],
     },
     {

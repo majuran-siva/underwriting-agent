@@ -297,4 +297,6 @@ def test_primary_demo_file_reports_the_missing_employment_letter():
     r = run(get_case("case03"))
     assert "missing:employment_letter:Hannah Lefebvre" in {f["id"] for f in r["flags"]}
     assert any("employment" in c["text"].lower() for c in r["conditions"])
+    assert "low_confidence:id1" in {f["id"] for f in r["flags"]}
+    assert any("legible copy" in c["text"] for c in r["conditions"])
     assert r["ratios"]["tds_qualifying"] == "45.65"

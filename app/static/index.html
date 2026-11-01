@@ -82,7 +82,6 @@ button:disabled, button.primary:disabled { background: var(--surface-strong); co
 button.link { background: none; border: 0; padding: 0; color: var(--link); font-weight: 480; border-radius: 0; }
 button.link:active { color: #1a3866; background: none; }
 .small-btn { font-size: 13px; padding: 0 14px; height: 32px; }
-#newBtn { background: var(--primary); color: #fff; }
 
 /* inbox */
 .queuehead { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: end; }
@@ -418,7 +417,6 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .kpis span { white-space: normal; }
   .mainnav { margin-left: 0; }
   .mainnav button { padding: 8px 6px; font-size: 13px; }
-  #newBtn { display: none; }
   .evhead { display: none; }
   .evrow summary { grid-template-columns: 1fr auto; }
   .evrow summary .evcol { display: none; }
@@ -433,7 +431,6 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
     <button id="nav-eval" onclick="evalScreen()">Eval</button>
   </nav>
   <span class="spacer"></span>
-  <button id="newBtn" onclick="startScreen()" hidden>← Demo Dashboard</button>
   <div class="usermenu" title="Underwriter (sample user)" aria-label="Signed in as underwriter (sample user)" role="img">UW</div>
 </header>
 <main id="app"></main>
@@ -465,7 +462,7 @@ let listTab = "new";
 const OUTCOME_TONE = {"Conditions sent": "attn", "Clear to approve": "ok", "Referred to senior": "attn", "Declined": "bad"};
 function setNav(id) { ["dash", "eval"].forEach(n => $("#nav-" + n).classList.toggle("on", n === id)); }
 async function startScreen(which) {
-  $("#newBtn").hidden = true; view = null; setNav("dash");
+  view = null; setNav("dash");
   if (which) listTab = which;
   samples = samples.length ? samples : await api("/api/samples");
   const done = await api("/api/reviewed");
@@ -526,7 +523,7 @@ $("#picker").onchange = e => { uploadFiles([...e.target.files]); e.target.value 
 /* ---------- eval ---------- */
 const evalValue = v => esc(Array.isArray(v) ? (v.join(", ") || "None") : v === true ? "Yes" : v === false ? "No" : v);
 async function evalScreen(report) {
-  $("#newBtn").hidden = true; view = null; setNav("eval");
+  view = null; setNav("eval");
   const kpis = report ? `<div class="kpis"><div><b>${report.files_passed} of ${report.files_total}</b><span>Files passed</span></div>
       <div><b>${report.checks_passed} of ${report.checks_total}</b><span>Checks passed</span></div></div>` : "";
   const rows = report ? `<div class="evhead"><span>File</span><span>Expected</span><span>Agent</span><span>Checks</span><span>Result</span></div>` + report.files.map(f => {
@@ -576,7 +573,6 @@ function sendFile(file, onProgress) {
 
 async function uploadFiles(files, pos) {
   if (!files.length) return;
-  $("#newBtn").hidden = false;
   batch = (await api("/api/uploads", {})).batch_id;
   tab = null;
   $("#app").innerHTML = `<section class="band block lavender slim"><div class="inner">

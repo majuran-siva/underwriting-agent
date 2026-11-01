@@ -13,7 +13,7 @@ EXPECTED = {
     "case02": {"recommendation": "refer_for_review", "gds": "36.44", "tds": "44.91", "ltv": "75.00",
                "issues": ["large_deposit", "self_employed_average", "tds_limit", "undisclosed_debt"]},
     "case03": {"recommendation": "refer_for_review", "gds": "35.93", "tds": "45.65", "ltv": "78.85",
-               "issues": ["missing_document", "tds_limit", "undisclosed_debt"]},
+               "issues": ["low_confidence", "missing_document", "tds_limit", "undisclosed_debt"]},
     "case04": {"recommendation": "refer_for_review", "gds": "36.81", "tds": "36.81", "ltv": "75.00",
                "issues": ["income_mismatch"]},
     "case05": {"recommendation": "refer_for_review", "gds": "38.36", "tds": "39.26", "ltv": "76.92",
