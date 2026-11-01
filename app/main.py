@@ -114,7 +114,7 @@ def samples():
         folder = SAMPLES / c["id"]
         files = sorted(p.name for p in folder.iterdir()) if folder.exists() else []
         app = c["application"]
-        out.append({"id": c["id"], "tag": evals.LABELS[c["id"]]["tag"], "title": c["title"], "summary": c["summary"], "files": files, "pos": c["pos"],
+        out.append({"id": c["id"], "title": c["title"], "summary": c["summary"], "files": files, "pos": c["pos"],
                     "borrowers": [b["name"] for b in app["borrowers"]], "address": app["property"]["address"],
                     "loan_amount": app["loan"]["amount"], "purchase_price": app["property"]["purchase_price"],
                     "closing_date": next((d["fields"]["closing_date"] for d in c["documents"]

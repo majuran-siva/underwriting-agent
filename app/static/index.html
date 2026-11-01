@@ -492,7 +492,7 @@ async function startScreen(which) {
          <div><b>${done.filter(r => r.outcome === "Conditions sent").length}</b><span>Conditions sent</span></div></div>`;
   const src = r => `<span class="src">${esc(r.source)}</span>`;
   const newRows = rows.map(r => `<div class="qrow" role="row" onclick="sendSample('${r.id}')">
-      <span><span class="${tagClass(r.tag)}">${esc(r.tag)}</span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
+      <span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
       <span>${src(r.pos)}</span>
       <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)} · ${esc(r.income_type)}</small></span>
       <span><b>${money(r.loan_amount)}</b><small>of ${money(r.purchase_price)}</small></span>

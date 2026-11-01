@@ -302,9 +302,8 @@ def test_primary_demo_file_reports_the_missing_employment_letter():
     assert r["ratios"]["tds_qualifying"] == "45.65"
 
 
-def test_every_inbox_file_has_a_label_and_expected_behaviour(client):
-    for sample in client.get("/api/samples").json():
-        assert sample["tag"]
+def test_every_eval_case_has_a_label_and_expected_behaviour(client):
+    assert all("tag" not in sample for sample in client.get("/api/samples").json())  # eval page only
     report = evals.run_all()
     assert all(f["tag"] and f["should"] and f["passes_if"] for f in report["files"])
     assert {f["tag"] for f in report["files"]} >= {"Happy path", "Happy path with issues", "Boundary: must refuse"}
