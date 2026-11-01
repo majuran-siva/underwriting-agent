@@ -29,6 +29,22 @@ b, strong { font-weight: 480; color: var(--ink); }
 code { font-size: 13px; background: var(--surface-soft); padding: 1px 6px; border-radius: var(--r-xs); }
 
 /* nav */
+.mainnav { display: flex; gap: 4px; margin-left: 20px; }
+.mainnav button { background: transparent; border: 0; color: var(--fog); padding: 8px 12px; border-radius: var(--r-sm); font: 450 14px/1 var(--sans); cursor: pointer; white-space: nowrap; }
+.mainnav button:hover { color: var(--on-dark); background: rgba(255,255,255,.08); }
+.mainnav button.on { color: #fff; background: rgba(255,255,255,.14); }
+.usermenu { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; font: 600 13px/1 var(--sans); }
+.demo-note { background: var(--ochre-soft); border-radius: var(--r-sm); padding: 12px 16px; margin: 0 0 24px; }
+.dcard { background: var(--card); border: 1px solid var(--hairline); border-radius: var(--r-xl); padding: 24px; }
+.evrow { border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--card); margin-bottom: 8px; }
+.evrow summary { display: grid; grid-template-columns: 2.4fr 1.1fr 1.1fr 72px 72px; gap: 12px; align-items: center; padding: 14px 16px; cursor: pointer; color: var(--body); font: inherit; }
+.evhead { display: grid; grid-template-columns: 2.4fr 1.1fr 1.1fr 72px 72px; gap: 12px; padding: 0 17px 8px; font-size: 13px; color: var(--muted); }
+.evrow summary small { display: block; color: var(--muted); }
+.evrow table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.evrow td, .evrow th { text-align: left; padding: 8px 16px; border-top: 1px solid var(--hairline); overflow-wrap: anywhere; }
+.pf { font-weight: 500; }
+.pf.pass { color: var(--success); }
+.pf.fail { color: var(--coral); }
 header { height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 48px; background: var(--dark); border-bottom: 0; position: sticky; top: 0; z-index: 10; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .logo { width: 30px; height: 30px; flex: none; }
@@ -111,8 +127,8 @@ button.link:active { color: #1a3866; background: none; }
 .file > span:first-child { width: 36px; height: 36px; border-radius: var(--r-sm); background: var(--surface-soft); border: 1px solid var(--hairline); display: grid; place-items: center; }
 .file .name { font-weight: 500; color: var(--ink); }
 .file .what { font-size: 14px; }
-.bar { height: 4px; background: var(--surface-strong); border-radius: 2px; overflow: hidden; margin-top: 6px; }
-.bar i { display: block; height: 100%; width: 0; background: var(--primary); transition: width .35s; }
+.dbar { height: 4px; background: var(--surface-strong); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+.dbar i { display: block; height: 100%; width: 0; background: var(--primary); transition: width .35s; }
 .steps { list-style: none; padding: 0; margin: 0; }
 .steps li { padding: 9px 0; color: var(--border-strong); display: flex; gap: 12px; align-items: center; }
 .steps li::before { content: ""; width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--surface-strong); flex: none; }
@@ -270,13 +286,24 @@ details.ocard:not([open]) .chev { transform: rotate(-90deg); }
 .onote { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 
 /* decision */
+#app:has(.decisionbar) { min-height: calc(100vh - 72px); display: flex; flex-direction: column; }
+.decisionbar { margin-top: auto; position: sticky; bottom: 0; z-index: 9; background: var(--card); color: var(--body); border-top: 1px solid var(--hairline); box-shadow: 0 -4px 16px rgba(40,37,59,.06); padding: 12px 48px; }
+.baracts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.missingdocs { background: var(--coral-soft); border: 1px solid var(--coral-line); border-radius: var(--r-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.missingalert { display: flex; width: 100%; height: auto; align-items: center; gap: 10px; text-align: left; white-space: normal; background: var(--coral-soft); border: 1px solid var(--coral-line); border-radius: var(--r-md); color: var(--coral); padding: 12px 16px; margin-bottom: 16px; font: inherit; cursor: pointer; }
+.missingalert b { color: var(--coral); }
+.missingalert .grow { flex: 1; }
+.editlabel { display: block; margin: 14px 0 4px; font-size: 13px; color: var(--muted); }
+.editfield { display: block; width: 100%; padding: 10px 12px; border: 1px solid var(--border-strong); border-radius: var(--r-sm); font: 400 14px/1.5 var(--sans); color: var(--body); background: var(--card); }
+.missingdocs h3 { margin: 0; font: 500 15px/1.3 var(--sans); color: var(--coral); }
+.decisionbar .inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .hright { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .decbtn { background: var(--primary); color: #fff; height: 42px; padding: 0 22px; font-size: 15px; }
-.decbtn.decided { height: auto; padding: 8px 18px; text-align: left; background: rgba(237,237,243,.1); color: var(--on-dark); border: 1px solid rgba(237,237,243,.2); }
-.decbtn.decided small { display: block; font: 500 10px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--fog); margin-bottom: 4px; }
-.decbtn.decided.good { background: rgba(47,174,120,.22); border-color: rgba(143,217,182,.5); }
-.decbtn.decided.bad { background: rgba(217,71,92,.28); border-color: rgba(241,194,202,.5); }
-.decbtn.decided.attn { background: rgba(201,138,27,.25); border-color: rgba(232,185,74,.5); }
+.decbtn.decided { height: auto; padding: 8px 18px; text-align: left; background: var(--surface-card); color: var(--ink); border: 1px solid var(--hairline); }
+.decbtn.decided small { display: block; font: 500 10px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.decbtn.decided.good { background: var(--success-bg); border-color: var(--success-border); }
+.decbtn.decided.bad { background: var(--coral-soft); border-color: var(--coral-line); }
+.decbtn.decided.attn { background: var(--ochre-soft); border-color: var(--ochre); }
 dialog.drawer { margin: 0 0 0 auto; height: 100vh; max-height: 100vh; width: min(520px, 100vw); border-radius: 16px 0 0 16px; }
 dialog.drawer .body { height: 100%; overflow: auto; padding: 24px 28px; }
 .dhead { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
@@ -306,11 +333,6 @@ dialog.drawer .body { height: 100%; overflow: auto; padding: 24px 28px; }
 .dreasons { display: flex; flex-wrap: wrap; gap: 6px; }
 .dchip { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 7px 12px; border-radius: 40px; background: var(--primary-tint); font: 420 13px/1 var(--sans); text-transform: none; letter-spacing: 0; color: var(--ink); cursor: pointer; }
 .dchip input { width: auto; margin: 0; }
-.dterms { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.dwhatif { margin-top: 10px; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-soft); font-size: 14px; }
-.dwhatif span { display: block; margin-top: 4px; font-weight: 480; }
-.dwhatif.ok { background: var(--success-bg); } .dwhatif.ok span { color: var(--success); }
-.dwhatif.no { background: var(--coral-soft); } .dwhatif.no span { color: var(--coral); }
 .derr { color: var(--coral); font-size: 14px; min-height: 1em; }
 .dfoot { display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom: -24px; padding: 16px 0 8px; background: var(--card); }
 .dcurrent { padding: 16px; border-radius: var(--r-md); background: var(--surface-soft); border-left: 4px solid var(--muted); margin-bottom: 12px; }
@@ -385,13 +407,34 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .card, dialog .body { padding: 18px; }
   .viewer iframe, .viewer img { height: 360px; }
 }
+@media (max-width: 760px) {
+  header .brand > div { display: none; }
+  header { gap: 6px; }
+  .decisionbar { padding: 10px 16px; }
+  .decisionbar span { font-size: 13px; }
+  .decisionbar .inner { flex-direction: column; align-items: stretch; gap: 8px; }
+  .baracts button { padding: 0 10px; font-size: 13px; }
+  .band.night .kpis { display: grid; grid-template-columns: 1fr 1fr; }
+  .kpis span { white-space: normal; }
+  .mainnav { margin-left: 0; }
+  .mainnav button { padding: 8px 6px; font-size: 13px; }
+  #newBtn { display: none; }
+  .evhead { display: none; }
+  .evrow summary { grid-template-columns: 1fr auto; }
+  .evrow summary .evcol { display: none; }
+}
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5266eb"/><path d="M21.5 10.2A8 8 0 1 0 21.5 21.8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M13 16h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="16" r="2.6" fill="#9cb4e8"/></svg><div><h1>Clearline</h1><small>Underwriting agent</small></div></div>
+  <nav class="mainnav" aria-label="Main">
+    <button id="nav-dash" onclick="startScreen()">Demo Dashboard</button>
+    <button id="nav-eval" onclick="evalScreen()">Eval</button>
+  </nav>
   <span class="spacer"></span>
-  <button id="newBtn" onclick="startScreen()" hidden>← Dashboard</button>
+  <button id="newBtn" onclick="startScreen()" hidden>← Demo Dashboard</button>
+  <div class="usermenu" title="Underwriter (sample user)" aria-label="Signed in as underwriter (sample user)" role="img">UW</div>
 </header>
 <main id="app"></main>
 <input type="file" id="picker" multiple hidden>
@@ -420,8 +463,9 @@ const fmtDay = d => new Date(d + "T12:00").toLocaleDateString("en-CA", {month: "
 const ago = m => m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} hr ${m % 60} min ago`;
 let listTab = "new";
 const OUTCOME_TONE = {"Conditions sent": "attn", "Clear to approve": "ok", "Referred to senior": "attn", "Declined": "bad"};
+function setNav(id) { ["dash", "eval"].forEach(n => $("#nav-" + n).classList.toggle("on", n === id)); }
 async function startScreen(which) {
-  $("#newBtn").hidden = true; view = null;
+  $("#newBtn").hidden = true; view = null; setNav("dash");
   if (which) listTab = which;
   samples = samples.length ? samples : await api("/api/samples");
   const done = await api("/api/reviewed");
@@ -430,7 +474,7 @@ async function startScreen(which) {
   const earliest = rows.filter(r => r.closing_date).sort((x, y) => x.closing_date.localeCompare(y.closing_date))[0];
   const avgTurn = Math.round(done.reduce((t, r) => t + r.turnaround_min, 0) / done.length);
   const hero = isNew
-    ? `<div><h1 class="display">New Applications</h1><p class="lede" style="margin:0">Pick one to start a review.</p></div>
+    ? `<div><h1 class="display">New Applications</h1><p class="lede" style="margin:0">Pick one demo application to start a review.</p></div>
        <div class="kpis"><div><b>${rows.length}</b><span>Waiting</span></div>
          <div><b>${short(rows[rows.length - 1].pos.received_min_ago)}</b><span>Oldest waiting</span></div>
          <div><b>${compact(rows.reduce((t, r) => t + Number(r.loan_amount), 0))}</b><span>Loan volume</span></div>
@@ -479,6 +523,35 @@ async function startScreen(which) {
 }
 $("#picker").onchange = e => { uploadFiles([...e.target.files]); e.target.value = ""; };
 
+/* ---------- eval ---------- */
+const evalValue = v => esc(Array.isArray(v) ? (v.join(", ") || "None") : v === true ? "Yes" : v === false ? "No" : v);
+async function evalScreen(report) {
+  $("#newBtn").hidden = true; view = null; setNav("eval");
+  const kpis = report ? `<div class="kpis"><div><b>${report.files_passed} of ${report.files_total}</b><span>Files passed</span></div>
+      <div><b>${report.checks_passed} of ${report.checks_total}</b><span>Checks passed</span></div></div>` : "";
+  const rows = report ? `<div class="evhead"><span>File</span><span>Expected</span><span>Agent</span><span>Checks</span><span>Result</span></div>` + report.files.map(f => {
+    const ok = f.checks.filter(c => c.passed).length;
+    return `<details class="evrow"><summary><span><b>${esc(f.title)}</b><small>${esc(f.app_no)}</small></span>
+        <span class="evcol">${esc(f.expected)}</span><span class="evcol">${esc(f.actual)}</span><span class="evcol">${ok}/${f.checks.length}</span>
+        <span class="pf ${f.passed ? "pass" : "fail"}">${f.passed ? "Pass" : "Fail"}</span></summary>
+      <table><tr><th>Check</th><th>Expected</th><th>Agent</th><th>Result</th></tr>${f.checks.map(c => `<tr><td>${esc(c.name)}</td><td>${evalValue(c.expected)}</td><td>${evalValue(c.actual)}</td>
+        <td class="pf ${c.passed ? "pass" : "fail"}">${c.passed ? "Pass" : "Fail"}</td></tr>`).join("")}</table></details>`; }).join("")
+    : `<div class="dcard"><p style="margin:0">Runs the agent on every file in the inbox and compares each result with the answer set for that file.</p></div>`;
+  $("#app").innerHTML = `
+    <section class="band block night"><div class="inner queuehead">
+      <div><h1 class="display">Eval</h1><p class="lede" style="margin:0">Does the agent get each inbox file right?</p></div>${kpis}
+    </div></section>
+    <section class="band light tight"><div class="inner">
+      <div class="listbar"><span></span><button class="primary" id="runEval" onclick="runEval()">${report ? "Run again" : "Run eval"}</button></div>
+      <p class="demo-note"><b>What this proves.</b> It tests the agent’s checks, math and rules. Document reading is simulated in this prototype, so it doesn’t test reading accuracy on real documents.</p>
+      ${rows}
+    </div></section>`;
+}
+async function runEval() {
+  const btn = $("#runEval"); btn.disabled = true; btn.textContent = "Running…";
+  evalScreen(await api("/api/eval"));
+}
+
 async function sendSample(id) {
   const s = samples.find(x => x.id === id);
   const files = await Promise.all(s.files.map(async name => {
@@ -511,10 +584,10 @@ async function uploadFiles(files, pos) {
     <section class="band light tight"><div class="inner"><div class="cols">
     <div class="card"><h2>Files</h2><div id="files">${files.map((f, i) => `
       <div class="file" id="f${i}"><span>📄</span><div><div class="name">${esc(f.name)}</div>
-      <div class="what">Waiting…</div><div class="bar"><i></i></div></div><span class="muted small">${Math.max(1, Math.round(f.size / 1024))} KB</span></div>`).join("")}</div></div>
+      <div class="what">Waiting…</div><div class="dbar"><i></i></div></div><span class="muted small">${Math.max(1, Math.round(f.size / 1024))} KB</span></div>`).join("")}</div></div>
     <div class="card"><h2>Agent</h2><ul class="steps" id="steps"><li class="now">Waiting for files…</li></ul></div></div></div></section>`;
   for (const [i, f] of files.entries()) {
-    const row = $(`#f${i}`), what = $(".what", row), bar = $(".bar i", row);
+    const row = $(`#f${i}`), what = $(".what", row), bar = $(".dbar i", row);
     what.textContent = "Uploading…";
     try {
       const res = await sendFile(f, p => bar.style.width = `${Math.round(p * 100)}%`);
@@ -529,7 +602,7 @@ async function uploadFiles(files, pos) {
 
 async function agentWorks() {
   const steps = ["Sorting and reading documents", "Checking what's missing", "Verifying income", "Tracing deposits and down payment",
-                 "Comparing debts with the credit report", "Calculating ratios against policy", "Drafting conditions and broker request"];
+                 "Comparing debts with the credit report", "Calculating ratios against policy", "Drafting conditions and broker email"];
   const ul = $("#steps");
   let data;
   try { data = api(`/api/uploads/${batch}/review`, {}); } catch { return; }
@@ -555,14 +628,6 @@ function headline(v) {
 }
 
 function render() {
-  // A counter-offer restructures the loan: show its terms everywhere the loan appears (ratios already use them).
-  const terms = view.review.decision?.type === "counter_offer" ? view.review.decision.terms : null;
-  if (terms) {
-    const base = view.application, loan = {...base.loan, original_amount: base.loan.original_amount ?? base.loan.amount};
-    if (terms.amount) { loan.amount = String(terms.amount); loan.down_payment = String(Number(base.property.purchase_price) - Number(terms.amount)); }
-    if (terms.amortization) loan.amortization_years = Number(terms.amortization);
-    view = {...view, application: {...base, loan}};
-  }
   const v = view, rv = v.review, r = v.ratios, a = v.application;
   const [tone, title, sub] = headline(v);
   const tile = (label, val, limit) => { const over = Number(val) > limit;
@@ -590,9 +655,9 @@ function render() {
   const unknown = v.uploads.filter(u => !u.recognized);
   const sentConds = new Set(rv.messages.flatMap(m => m.condition_ids));
   const asked = flagId => v.conditions.some(c => c.flag_id === flagId && sentConds.has(c.id));
-  const attention = missing.map(f => `<div class="att bad"><span class="ic bad">✗</span><div><b>${esc(f.title.replace("Missing document: ", ""))}</b>
-        <span>Missing · ${asked(f.id) ? "requested from broker" : "in the draft request below"}</span></div></div>`).join("")
-    + lowDocs.map(d => `<div class="att warn"><span class="ic warn">!</span><div><b>${esc(d.label)}</b><span>Hard to read · ${asked(`low_confidence:${d.id}`) ? "clearer copy requested" : "clearer copy in the draft request"}</span></div>
+  const missingHtml = missing.length ? `<div class="missingdocs"><h3>✗ Missing documents (${missing.length})</h3>${missing.map(f => `<div class="att bad"><span class="ic bad">✗</span><div><b>${esc(f.title.replace("Missing document: ", ""))}</b>
+        <span>Missing · ${asked(f.id) ? "requested from broker" : "in the draft email in Broker Communication"}</span></div></div>`).join("")}</div>` : "";
+  const attention = lowDocs.map(d => `<div class="att warn"><span class="ic warn">!</span><div><b>${esc(d.label)}</b><span>Hard to read · ${asked(`low_confidence:${d.id}`) ? "clearer copy requested" : "clearer copy in the draft email"}</span></div>
         ${rv.approved ? "" : `<button onclick="openDoc('${d.id}',null,true)">Check read</button>`}</div>`).join("")
     + declinedDocs.map(d => `<div class="att bad"><span class="ic bad">✗</span><div><b>${esc(d.label)}</b><span>Read declined · clearer copy needed</span></div>
         ${rv.approved ? "" : `<button onclick="openDoc('${d.id}',null,true)">Re-check</button>`}</div>`).join("")
@@ -602,23 +667,19 @@ function render() {
   const counts = [`<span class="count ok">✓ ${v.documents.length - lowDocs.length} received</span>`,
     lowDocs.length ? `<span class="count warn">! ${lowDocs.length} hard to read</span>` : "",
     missing.length ? `<span class="count bad">✗ ${missing.length} missing</span>` : ""].join("");
-  const docsHtml = `${attention ? `<div class="attention">${attention}</div>` : ""}<div class="docgrid">${received}</div>`;
+  const docsHtml = `${missingHtml}${attention ? `<div class="attention">${attention}</div>` : ""}<div class="docgrid">${received}</div>`;
   const aps = v.documents.find(d => d.type === "purchase_agreement")?.fields || {};
   const L = a.loan, P = a.property;
   const fmtDate = dt => dt ? new Date(dt + "T12:00").toLocaleDateString("en-CA", {month: "short", day: "numeric", year: "numeric"}) : "Not provided";
-  const facts = [["Loan amount", money(L.amount), L.original_amount && L.original_amount !== L.amount ? `counter-offer · was ${money(L.original_amount)}` : ""], ["Purchase price", money(P.purchase_price)],
+  const facts = [["Loan amount", money(L.amount)], ["Purchase price", money(P.purchase_price)],
     ["Down payment", money(L.down_payment), `${Math.round(L.down_payment / P.purchase_price * 100)}%`],
     ["Closing date", fmtDate(aps.closing_date)], ["Rate", `${L.contract_rate}%`, `qualifies at ${r.qualifying_rate}%`],
     ["Term · amortization", `${L.term_years} yr · ${L.amortization_years} yr`, esc(L.product)]];
 
-  const kindLabel = k => ({document_request: "Document request", decision: "Decision letter"}[k] || "Review report & conditions");
+  const kindLabel = k => ({decision: "Decision letter"}[k] || "Review report & conditions");
   const msgs = rv.messages.map((m, i) => `<details class="msg sent" ${msgOpen(`sent${i}`, false)} ontoggle="msgToggle(this, 'sent${i}')"><summary><span class="pill sent">✓ Sent</span><b>${kindLabel(m.kind)}</b><span class="muted small">to ${esc(m.to.split(" <")[0])}</span><span style="flex:1"></span><span class="muted">${esc(m.at.slice(11, 16))}</span><span class="chev">▾</span></summary>
       <div class="ehead"><div><span>From</span>${esc(m.from)}</div><div><span>To</span>${esc(m.to)}</div><div><span>Subject</span><b>${esc(m.subject)}</b></div></div>
       <pre class="sentbody">${esc(m.body)}</pre></details>`).join("");
-  const req = rv.request_draft && !rv.approved ? `<details class="msg" ${msgOpen("req", true)} ontoggle="msgToggle(this, 'req')"><summary><span class="pill">Draft</span><b>Document request</b>
-      <span class="muted small">${rv.request_draft.condition_ids.length} item${rv.request_draft.condition_ids.length === 1 ? "" : "s"}</span><span style="flex:1"></span><span class="chev">▾</span></summary><pre>${esc(rv.request_draft.body)}</pre>
-      <div class="msgfoot"><span class="muted small">Plain document request. Can go now, before you finish reviewing.</span>
-      <button class="primary" onclick="previewMsg('send_request')">Preview & send</button></div></details>` : "";
   const condRow = c => {
     const cr = rv.condition_reviews[c.id] || {}, text = cr.text || c.text;
     const state = cr.action === "reject" ? "removed" : cr.action === "fulfill" ? "met" : "open";
@@ -651,18 +712,18 @@ function render() {
     issues: `<div class="card"><h2>Issues to Review <span class="muted">· ${issues.length}</span></h2>${issueHtml}
       ${issues.length && !unreviewed.length ? `<p class="small" style="margin:16px 0 0">All issues reviewed. Next: ${tabLink("file", "check the overview")} or ${tabLink("broker", "send to the broker")}.</p>` : ""}</div>`,
     docs: `<div class="card docs open"><div class="cardhead"><h2>Documents</h2><div class="counts">${counts}</div></div>${docsHtml}
-      ${needsDocs ? `<p class="small" style="margin:16px 0 0">Missing and hard-to-read documents go out in the ${tabLink("broker", "document request")}.</p>` : ""}</div>`,
-    file: `${overviewHtml(v, rv)}
+      ${needsDocs ? `<p class="small" style="margin:16px 0 0">Missing and hard-to-read documents go out in the ${tabLink("broker", "broker email")}.</p>` : ""}</div>`,
+    file: `${missing.length ? `<button class="missingalert" onclick="setTab('docs')"><span class="ic bad">✗</span><span><b>${missing.length} missing document${missing.length === 1 ? "" : "s"}</b> · ${esc(missing.map(f => f.title.replace("Missing document: ", "")).join(", "))}</span><span class="grow"></span><span>View documents →</span></button>` : ""}${overviewHtml(v, rv)}
       <div class="card ocard"><div class="cardhead"><h2>Conditions</h2><div class="counts"><span class="count bad">${openCount} outstanding</span><span class="count ok">${metCount} fulfilled</span></div></div>
         <div class="report"><div class="rsec wide"><h4>Before approval</h4>${fileConds.map(condRow).join("") || `<p class="small">None. Only the standard conditions remain.</p>`}</div>
         <div class="rsec wide"><h4>Before funding</h4>${fundConds.map(condRow).join("")}</div></div></div>`,
-    broker: `<div class="card"><h2>Broker Communication</h2>${req}
+    broker: `<div class="card"><h2>Broker Communication</h2>
       ${!rv.draft ? "" : `<details class="msg" ${msgOpen("cond", true)} ontoggle="msgToggle(this, 'cond')"><summary><span class="pill">Draft</span><b>${rv.draft.kind === "decision" ? `Decision letter · ${esc(rv.decision.label)}` : "Review report & conditions"}</b><span class="muted small">${esc(rv.draft.status)}</span><span style="flex:1"></span><span class="chev">▾</span></summary>
         <div class="msgsum"><span>To ${esc(rv.draft.to.split(" <")[0])} · ${rv.draft.kind === "decision"
           ? `the letter for your decision${rv.draft.condition_ids.length ? ", with the file summary and conditions" : ""}. Change the decision from the ${`<button class="link" onclick="openDecision()">Decision</button>`} button.`
           : `includes the file summary, qualification, ${openCount} outstanding${metCount ? ` and ${metCount} fulfilled` : ""} condition${openCount + metCount === 1 ? "" : "s"}. Conditions are edited in the ${tabLink("file", "Overview")} tab.`}</span></div>
-        <div class="msgfoot"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + blockerHtml : "Nothing goes out until you send it."}</span>
-        <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="previewMsg('approve')">Preview & send</button></div></details>`}
+        ${editNote(rv.draft)}<div class="msgfoot"><span class="${rv.blockers.length ? "warn" : "muted"} small">${rv.blockers.length ? "Before sending: " + blockerHtml : "Nothing goes out until you send it."}</span>
+        <span><button onclick="editMsg()">Edit email</button> <button class="primary" ${rv.blockers.length ? "disabled" : ""} onclick="previewMsg()">Preview & send</button></span></div></details>`}
       ${msgs || (rv.approved ? "" : `<p class="small muted" style="margin:4px 0 0">Nothing sent yet.</p>`)}</div>`,
     activity: `<div class="card"><h2>Figures used in the ratios</h2>
       <table>${v.inputs.map(i => `<tr><td>${esc(i.label)}<div class="muted">${esc(i.basis)}${i.override ? ` · changed from ${money(i.agent_value)}: ${esc(i.override.reason)}` : ""}</div></td>
@@ -678,18 +739,14 @@ function render() {
     <div><div class="who"><b>${esc(a.borrowers.map(b => b.name).join(" & "))}</b><span>${esc(a.property.address)}</span>
         <span class="state ${tone}">${esc(title)}</span></div>
       <dl class="facts">${facts.map(([k, val, note]) => `<div><dt>${k}</dt><dd>${val}${note ? `<small>${note}</small>` : ""}</dd></div>`).join("")}</dl></div>
-    <div class="hright">${decisionControl(rv)}
+    <div class="hright">
       <div class="tiles">${tile("GDS", r.gds_qualifying, v.limits.gds)}${tile("TDS", r.tds_qualifying, v.limits.tds)}${tile("LTV", r.ltv, 80)}</div></div>
   </div></section>
   <nav class="tabs inner" role="tablist">${tabs.map(t => `<button role="tab" aria-selected="${t.id === tab}" class="tabbtn ${t.id === tab ? "on" : ""}"
       onclick="setTab('${t.id}')">${t.label}${t.badge ? `<span class="tbadge ${t.tone || ""}">${t.badge}</span>` : ""}</button>`).join("")}</nav>
-  <section class="band light tight"><div class="inner" id="tabpanel"></div></section>`;
-  const at = tabs.findIndex(t => t.id === tab), prev = tabs[at - 1], next = tabs[at + 1];
-  const tabNav = `<div class="tabnav">${prev ? `<button onclick="setTab('${prev.id}')">← ${prev.label}</button>` : "<span></span>"}
-    <span class="muted small">${at + 1} of ${tabs.length}</span>
-    ${next ? `<button class="primary" onclick="setTab('${next.id}')">${next.label} →</button>`
-      : rv.decision ? `<button onclick="openDecision()">View decision</button>` : `<button class="primary" onclick="openDecision()">Make decision →</button>`}</div>`;
-  $("#app").querySelector("#tabpanel").innerHTML = panels[tab] + tabNav;
+  <section class="band light tight"><div class="inner" id="tabpanel"></div></section>
+  <div class="decisionbar"><div class="inner"><span>${esc(decisionStatus(rv))}</span><div class="baracts">${tabButtons(tabs)}${decisionControl(rv)}</div></div></div>`;
+  $("#app").querySelector("#tabpanel").innerHTML = panels[tab];
 }
 
 const msgState = {};
@@ -810,7 +867,20 @@ function overviewHtml(v, rv) {
 }
 
 /* ---------- decision: one control in the loan header, a panel that slides in from the right ---------- */
-const DTONE = {approve: "good", approve_conditions: "good", counter_offer: "attn", refer: "attn", hold: "attn", decline: "bad", withdrawn: "muted"};
+const DTONE = {approve: "good", approve_conditions: "good", refer: "attn", hold: "attn", decline: "bad", withdrawn: "muted"};
+function tabButtons(tabs) {
+  const at = tabs.findIndex(t => t.id === tab), prev = tabs[at - 1], next = tabs[at + 1];
+  return (prev ? `<button onclick="setTab('${prev.id}')">← ${prev.label}</button>` : "")
+    + (next ? `<button onclick="setTab('${next.id}')">${next.label} →</button>` : "");
+}
+function decisionStatus(rv) {
+  const d = rv.decision, f = rv.facts, plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  if (d) return d.sent_at ? "Decision letter sent to the broker" : "Decision recorded. Letter not sent yet";
+  const left = [f.open_issues && `${plural(f.open_issues, "issue")} to review`,
+    f.unconfirmed_docs && `${plural(f.unconfirmed_docs, "document")} to confirm`,
+    f.outstanding && `${plural(f.outstanding, "condition")} outstanding`].filter(Boolean);
+  return left.join(" · ") || "Nothing left to review";
+}
 function decisionControl(rv) {
   if (!rv.decision) return `<button class="decbtn" onclick="openDecision()">Make decision</button>`;
   const d = rv.decision;
@@ -818,7 +888,7 @@ function decisionControl(rv) {
 }
 
 const REC_LABEL = {approve: "Approve", approve_with_conditions: "Approve with conditions", refer_for_review: "Refer for review", decline: "Decline"};
-let decPick = null, whatIfTimer = null;
+let decPick = null;
 function openDecision() {
   const v = view, rv = v.review, f = rv.facts, d = rv.decision;
   const dlg = $("#dlg"); dlg.className = "drawer";
@@ -829,7 +899,7 @@ function openDecision() {
     $("#dlgBody").innerHTML = `${header}
       <div class="dcurrent ${DTONE[d.type]}"><small>Recorded ${esc(d.at.replace("T", " ").slice(0, 16))} by ${esc(d.by)}</small><b>${esc(d.label)}</b>
         ${d.reasons?.length ? `<p>${d.reasons.map(esc).join(" · ")}</p>` : ""}${d.note ? `<p>“${esc(d.note)}”</p>` : ""}
-        ${d.follow_up ? `<p>Follow up ${fmtDay(d.follow_up)}</p>` : ""}${d.terms ? `<p>Terms: ${d.terms.amount ? money(d.terms.amount) : ""}${d.terms.amortization ? ` · ${d.terms.amortization}-yr amortization` : ""}</p>` : ""}</div>
+        ${d.follow_up ? `<p>Follow up ${fmtDay(d.follow_up)}</p>` : ""}</div>
       <p class="small muted">${d.sent_at ? "The decision letter was sent to the broker, so the decision is final in this prototype."
         : `The decision letter is drafted in ${`<button class="link" onclick="$('#dlg').close(); setTab('broker')">Broker Communication</button>`}. Nothing has gone to the broker yet.`}</p>
       <div class="dfoot">${d.sent_at ? "" : `<button onclick="clearDecision()">Change decision</button>`}<button class="primary" onclick="$('#dlg').close(); setTab('broker')">Go to Broker Communication</button></div>`;
@@ -864,36 +934,20 @@ function openDecision() {
 }
 
 function decisionFields() {
-  const o = view.review.decision_options.find(x => x.id === decPick), L = view.application.loan;
+  const o = view.review.decision_options.find(x => x.id === decPick);
   if (!o) { $("#dfields").innerHTML = ""; return; }
   $("#dfields").innerHTML = `
     ${o.reasons.length ? `<label>${o.id === "decline" ? "Reasons (shown to the broker in plain wording)" : "Reason"}</label>
       <div class="dreasons">${o.reasons.map(r => `<label class="dchip"><input type="checkbox" value="${esc(r)}"> ${esc(r)}</label>`).join("")}</div>` : ""}
-    ${o.id === "counter_offer" ? `<div class="dterms"><div><label>Loan amount</label><input id="dAmount" type="number" step="1000" value="${Number(L.amount)}"></div>
-      <div><label>Amortization (years)</label><input id="dAmort" type="number" min="5" max="30" value="${L.amortization_years}"></div></div>
-      <div class="dwhatif" id="dwhatif">Change the terms to see the ratios.</div>` : ""}
     ${o.id === "hold" ? `<label>Follow up on</label><input id="dFollow" type="date" value="${new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10)}">` : ""}
     <label>${o.id === "refer" ? "Note for the senior underwriter (required)" : "Note (optional, saved to the audit trail)"}</label>
     <textarea id="dNote" rows="3" placeholder="${o.id === "refer" ? "What should they look at?" : ""}"></textarea>`;
-  if (o.id === "counter_offer") { ["dAmount", "dAmort"].forEach(id => $("#" + id).oninput = whatIf); whatIf(); }
-}
-
-function whatIf() {
-  clearTimeout(whatIfTimer);
-  whatIfTimer = setTimeout(async () => {
-    const q = new URLSearchParams({amount: $("#dAmount").value, amortization: $("#dAmort").value});
-    const w = await (await fetch(`/api/uploads/${batch}/whatif?${q}`)).json();
-    $("#dwhatif").className = "dwhatif " + (w.within_policy ? "ok" : "no");
-    $("#dwhatif").innerHTML = `At these terms: <b>GDS ${w.gds}%</b> · <b>TDS ${w.tds}%</b> · LTV ${w.ltv}% · payment ${money(w.payment)}/mo
-      <span>${w.within_policy ? "✓ Within policy" : "✗ Still over policy"}</span>`;
-  }, 250);
 }
 
 async function saveDecision() {
   const body = {kind: "decide", action: decPick, note: $("#dNote")?.value || null,
     reasons: [...document.querySelectorAll(".dreasons input:checked")].map(i => i.value)};
   if (decPick === "hold") body.follow_up = $("#dFollow").value;
-  if (decPick === "counter_offer") body.terms = {amount: Number($("#dAmount").value), amortization: Number($("#dAmort").value)};
   const r = await fetch(`/api/uploads/${batch}/action`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
   const data = await r.json();
   if (!r.ok) { $("#derr").textContent = data.detail; return; }
@@ -920,9 +974,31 @@ function reportConditions(report) {
 
 async function act(body) { view = await api(`/api/uploads/${batch}/action`, body); render(); }
 
-function previewMsg(kind) {
-  const m = kind === "send_request" ? view.review.request_draft : view.review.draft;
-  const label = kind === "send_request" ? "Document request" : m.kind === "decision" ? "Decision letter" : "Review report & conditions";
+const editNote = m => !m.edited ? "" : `<div class="msgsum"><span class="${m.edit_stale ? "warn" : "muted"} small">${m.edit_stale
+  ? "You edited this email, and the file has changed since. Your text was kept, so check it’s still right."
+  : "You edited this email."}</span></div>`;
+function editMsg() {
+  const m = view.review.draft;
+  const d = $("#dlg"); d.className = "";
+  if (d.open) d.close();
+  $("#dlgBody").innerHTML = `<h3>Edit email</h3><p class="muted small" style="margin:0">To ${esc(m.to)}. Nothing goes out until you send it.</p>
+    <label class="editlabel" for="eSubject">Subject</label><input id="eSubject" class="editfield" value="${esc(m.subject)}">
+    <label class="editlabel" for="eBody">Message</label><textarea id="eBody" class="editfield" rows="18">${esc(m.body)}</textarea>
+    <div class="sendbar">${m.edited ? `<button id="eReset">Restore agent’s draft</button>` : "<span></span>"}
+      <span><button id="eCancel">Cancel</button> <button class="primary" id="eSave">Save</button></span></div>`;
+  d.showModal();
+  $("#eCancel").onclick = () => d.close();
+  if (m.edited) $("#eReset").onclick = async () => { await act({kind: "edit_message", target: m.kind, action: "reset"}); d.close(); toast("Agent’s draft restored"); };
+  $("#eSave").onclick = async () => {
+    const subject = $("#eSubject").value.trim(), body = $("#eBody").value.trim();
+    if (!subject || !body) { alert("The subject and message can’t be empty."); return; }
+    await act({kind: "edit_message", target: m.kind, action: "save", value: body, note: subject});
+    d.close(); toast("✓ Email updated");
+  };
+}
+function previewMsg() {
+  const m = view.review.draft;
+  const label = m.kind === "decision" ? "Decision letter" : "Review report & conditions";
   const d = $("#dlg"); d.className = "";
   $("#dlgBody").innerHTML = `<h3>Preview: ${label}</h3><p class="muted small" style="margin:0">This is exactly what the broker will receive.</p>
     <div class="email">
@@ -930,12 +1006,13 @@ function previewMsg(kind) {
       <pre>${esc(m.body)}</pre>
     </div>
     <div class="sendbar"><span class="muted small">${m.condition_ids.length} item${m.condition_ids.length === 1 ? "" : "s"} · sent to the simulated broker inbox</span>
-      <span><button id="pBack">Back to edit</button> <button class="primary" id="pSend">Send</button></span></div>`;
+      <span><button id="pBack">Back</button> <button id="pEdit">Edit email</button> <button class="primary" id="pSend">Send</button></span></div>`;
   d.showModal();
   $("#pBack").onclick = () => d.close();
+  $("#pEdit").onclick = () => editMsg();
   $("#pSend").onclick = async () => {
     const btn = $("#pSend"); btn.disabled = true; btn.textContent = "Sending…";
-    try { await act({kind}); } catch { btn.disabled = false; btn.textContent = "Send"; return; }
+    try { await act({kind: "approve"}); } catch { btn.disabled = false; btn.textContent = "Send"; return; }
     d.close();
     toast(`✓ ${label} sent to ${m.to.split(" <")[0]}`);
   };

@@ -1,8 +1,8 @@
 """Messages to the broker. Prototype only: they go to a simulated inbox, never to a real address.
 
-Rule: the agent drafts, the underwriter sends. As soon as the file is read the agent drafts a plain
-document request (missing or unreadable documents) so it can go out early; the full conditions message
-follows once the underwriter has reviewed the issues. Nothing is sent without the underwriter clicking Send.
+Rule: the agent drafts, the underwriter sends. One message carries the full review and conditions, including
+missing or unreadable documents, once the underwriter has reviewed the issues. Nothing is sent without the
+underwriter clicking Send.
 """
 from __future__ import annotations
 
@@ -23,19 +23,6 @@ def _addresses(view: dict) -> dict:
 def _salutation(view: dict) -> str:
     names = " & ".join(b["name"] for b in view["application"]["borrowers"])
     return f"Re: {names} – {view['application']['property']['address']}"
-
-
-def document_request(view: dict) -> dict | None:
-    """Draft request for missing or unreadable documents, ready as soon as the file is read; None if none."""
-    items = [c for c in view["conditions"] if c["raised_by"] in DOCUMENT_REQUEST_CHECKS]
-    if not items:
-        return None
-    body = [_hello(view), "",
-            f"We've started our review. To keep it moving, please send the following:", ""]
-    body += [f"• {c['text']}" for c in items]
-    body += ["", "Our underwriter will follow up with the full review shortly.", "", f"{LENDER} – Underwriting"]
-    return {"subject": _salutation(view) + " – documents needed", "kind": "document_request", **_addresses(view),
-            "body": "\n".join(body), "condition_ids": [c["id"] for c in items]}
 
 
 def _money(value) -> str:
@@ -164,15 +151,6 @@ def decision_message(view: dict, decision: dict, condition_reviews: dict, alread
                              status="Approved" if kind == "approve" else "Approved with conditions",
                              intro=["Good news: this file is approved. Our commitment, the review and the conditions are below."])
         return msg
-    if kind == "counter_offer":
-        t, r, loan = decision["terms"], view["ratios"], view["application"]["loan"]
-        offer = [f"Loan amount: ${float(t.get('amount') or loan['amount']):,.0f}",
-                 f"Amortization: {t.get('amortization') or loan['amortization_years']} years",
-                 f"GDS {r['gds_qualifying']}% · TDS {r['tds_qualifying']}% at the qualifying rate of {r['qualifying_rate']}%"]
-        return review_message(view, condition_reviews, already_requested, kind="decision", subject="counter-offer",
-                              status="Counter-offer", intro=["We can't approve the file as submitted, but we can offer the following:",
-                                                             "", *[f"• {o}" for o in offer], *(["", note] if note else []),
-                                                             "", "If the borrower accepts, the conditions below apply."])
     if kind == "refer":
         return review_message(view, condition_reviews, already_requested, kind="decision", subject="file under senior review",
                               status="Under senior review",

@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from underwriting import evals
 from underwriting.agent import run
 from underwriting.demo_cases import get_case
 
@@ -102,18 +103,13 @@ def test_files_not_uploaded_show_as_missing(client):
     assert any(f["check"] == "missing_document" and "pay stub" in f["title"] for f in v["flags"])
 
 
-def test_agent_drafts_document_request_but_never_sends_it(client):
+def test_one_email_covers_missing_documents_and_is_never_sent_by_the_agent(client):
     batch, v = upload_case(client, "case06")
     assert v["review"]["messages"] == []
-    draft = v["review"]["request_draft"]
-    assert "Notice of Assessment" in draft["body"] and "legible copy" in draft["body"]
-    assert "2-year" not in draft["body"]  # judgment items wait for the full conditions message
-    sent = client.post(f"/api/uploads/{batch}/action", json={"kind": "send_request"}).json()
-    [msg] = sent["review"]["messages"]
-    assert msg["kind"] == "document_request" and sent["review"]["request_draft"] is None
-    assert any("Underwriter" in a["who"] and "document request" in a["text"] for a in sent["review"]["audit"])
-    _, clean = upload_case(client, "case01")
-    assert clean["review"]["request_draft"] is None
+    assert "request_draft" not in v["review"]
+    body = v["review"]["draft"]["body"]
+    assert "Notice of Assessment" in body and "legible copy" in body
+    assert client.post(f"/api/uploads/{batch}/action", json={"kind": "send_request"}).status_code == 422
 
 
 def test_override_recalculates_and_persists(client):
@@ -137,14 +133,13 @@ def test_sending_blocked_until_issues_reviewed_and_documents_confirmed(client):
     act = lambda body: client.post(f"/api/uploads/{batch}/action", json=body)
     assert act({"kind": "approve"}).status_code == 409
     for f in v["flags"]:
-        if f["check"] not in ("missing_document", "low_confidence"):  # handled by requesting the document
+        if f["check"] not in ("missing_document", "low_confidence"):  # go to the broker as conditions
             act({"kind": "flag", "target": f["id"], "action": "confirm"})
     assert act({"kind": "approve"}).status_code == 409   # blurry statement not confirmed yet
     act({"kind": "confirm_doc", "target": "bank"})
     done = act({"kind": "approve"}).json()
     assert done["review"]["approved"]["conditions"]
     assert done["review"]["messages"][-1]["kind"] == "conditions"
-    assert done["review"]["request_draft"] is None  # covered by the conditions message
 
 
 def test_broker_report_covers_the_review_and_conditions(client):
@@ -171,9 +166,9 @@ def test_broker_report_leaves_out_internal_notes(client):
 
 def test_messages_are_addressed_to_the_submitting_broker(client):
     _, v = upload_case(client, "case06")
-    for m in (v["review"]["request_draft"], v["review"]["draft"]):
-        assert m["to"] == "Simone Tremblay <s.tremblay@keystone-home.example>"
-        assert m["body"].startswith("Hello Simone,")
+    m = v["review"]["draft"]
+    assert m["to"] == "Simone Tremblay <s.tremblay@keystone-home.example>"
+    assert m["body"].startswith("Hello Simone,")
     samples = client.get("/api/samples").json()
     assert all(s["pos"]["app_no"].startswith("MR-") for s in samples)
 
@@ -239,15 +234,10 @@ def test_decline_needs_reasons_and_letter_hides_fraud(client):
     assert "unable to verify information" in body and "fraud" not in body and "misrepresentation" not in body
 
 
-def test_counter_offer_must_bring_ratios_within_policy(client):
-    batch, v = upload_case(client, "case03")   # TDS 45.65% with the undisclosed car loan
-    for f in v["flags"]:
-        client.post(f"/api/uploads/{batch}/action", json={"kind": "flag", "target": f["id"], "action": "confirm"})
-    assert decide(client, batch, "counter_offer", terms={"amount": 405000}).status_code == 422
-    what = client.get(f"/api/uploads/{batch}/whatif", params={"amount": 360000}).json()
-    assert what["within_policy"]
-    r = decide(client, batch, "counter_offer", terms={"amount": 360000}).json()
-    assert D(r["ratios"]["tds_qualifying"]) <= 44 and "counter-offer" in r["review"]["draft"]["subject"]
+def test_counter_offer_is_not_a_decision_option(client):
+    batch, v = upload_case(client, "case03")
+    assert all(o["id"] != "counter_offer" for o in v["review"]["decision_options"])
+    assert decide(client, batch, "counter_offer").status_code == 422
 
 
 def test_hold_needs_follow_up_and_decision_can_be_cleared(client):
@@ -257,3 +247,54 @@ def test_hold_needs_follow_up_and_decision_can_be_cleared(client):
     assert "on hold" in r["review"]["draft"]["subject"]
     cleared = decide(client, batch, "clear").json()
     assert cleared["review"]["decision"] is None
+
+
+def test_eval_passes_on_every_inbox_file():
+    report = evals.run_all()
+    failed = [c for f in report["files"] for c in f["checks"] if not c["passed"]]
+    assert report["files_total"] == 6
+    assert failed == []
+
+
+def test_eval_fails_when_the_answer_differs():
+    wrong = {**evals.EXPECTED["case05"], "recommendation": "approve", "issues": []}
+    result = evals.run_case(get_case("case05"), wrong)
+    assert result["passed"] is False
+    assert {c["name"] for c in result["checks"] if not c["passed"]} == {"Recommendation", "Issues found, none invented"}
+
+
+def test_eval_endpoint():
+    client = TestClient(app)
+    assert client.get("/api/eval").json()["files_passed"] == 6
+
+
+def _batch_for(client, case_id):
+    batch = client.post("/api/uploads").json()["batch_id"]
+    folder = Path(__file__).parent.parent / "samples" / case_id
+    for path in folder.iterdir():
+        client.post(f"/api/uploads/{batch}/files", files={"file": (path.name, path.read_bytes())})
+    client.post(f"/api/uploads/{batch}/review")
+    return batch
+
+
+def test_underwriter_can_edit_the_email_and_the_edit_is_what_gets_sent():
+    client = TestClient(app)
+    batch = _batch_for(client, "case01")
+    act = lambda **body: client.post(f"/api/uploads/{batch}/action", json=body)
+    kind = client.get(f"/api/uploads/{batch}").json()["review"]["draft"]["kind"]
+    assert act(kind="edit_message", target=kind, action="save", value="", note="Hi").status_code == 422
+    v = act(kind="edit_message", target=kind, action="save", value="Please call me.", note="Quick note").json()
+    assert v["review"]["draft"]["body"] == "Please call me." and v["review"]["draft"]["edited"]
+    assert "Edited" in v["review"]["audit"][-1]["text"]
+    v = act(kind="edit_message", target=kind, action="reset").json()
+    assert v["review"]["draft"]["body"] != "Please call me."
+    act(kind="edit_message", target=kind, action="save", value="Please call me.", note="Quick note")
+    sent = act(kind="approve").json()["review"]["messages"][-1]
+    assert sent["body"] == "Please call me." and sent["subject"] == "Quick note"
+
+
+def test_primary_demo_file_reports_the_missing_employment_letter():
+    r = run(get_case("case03"))
+    assert "missing:employment_letter:Hannah Lefebvre" in {f["id"] for f in r["flags"]}
+    assert any("employment" in c["text"].lower() for c in r["conditions"])
+    assert r["ratios"]["tds_qualifying"] == "45.65"

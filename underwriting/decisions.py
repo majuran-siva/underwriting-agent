@@ -12,8 +12,6 @@ DECISIONS = [
      "desc": "Issue a commitment with standard conditions only."},
     {"id": "approve_conditions", "label": "Approve with conditions", "tone": "good",
      "desc": "Issue a commitment; outstanding conditions must be met before funding."},
-    {"id": "counter_offer", "label": "Counter-offer", "tone": "attn",
-     "desc": "Approve a restructured deal: different loan amount or amortization."},
     {"id": "refer", "label": "Refer to senior", "tone": "attn",
      "desc": "Send to a senior underwriter or credit committee: exception, authority limit or concern."},
     {"id": "hold", "label": "Hold", "tone": "attn",
@@ -72,15 +70,15 @@ def options(view: dict, review: dict) -> list[dict]:
     out = []
     for d in DECISIONS:
         blocked = []
-        if d["id"] in ("approve", "approve_conditions", "counter_offer"):
+        if d["id"] in ("approve", "approve_conditions"):
             if f["critical"]:
                 blocked.append("possible fraud is still on the file (refer or decline)")
-            if f["open_issues"] and d["id"] != "counter_offer":
+            if f["open_issues"]:
                 blocked.append(f"{f['open_issues']} issue{'s' * (f['open_issues'] != 1)} not reviewed")
-            if f["unconfirmed_docs"] and d["id"] != "counter_offer":
+            if f["unconfirmed_docs"]:
                 blocked.append("hard-to-read document not checked")
         if d["id"] in ("approve", "approve_conditions") and f["over_policy"]:
-            blocked.append("a ratio is over policy (refer, counter-offer or decline)")
+            blocked.append("a ratio is over policy (refer or decline)")
         if d["id"] == "approve" and f["outstanding"]:
             blocked.append(f"{f['outstanding']} condition{'s' * (f['outstanding'] != 1)} outstanding (use Approve with conditions)")
         out.append({**d, "allowed": not blocked, "blocked": blocked, "suggested": d["id"] == suggested,
@@ -88,7 +86,7 @@ def options(view: dict, review: dict) -> list[dict]:
     return out
 
 
-def validate(decision: str, reasons: list[str], note: str | None, follow_up: str | None, terms: dict | None,
+def validate(decision: str, reasons: list[str], note: str | None, follow_up: str | None,
              view: dict, review: dict) -> str | None:
     """Returns an error message, or None if the decision can be recorded."""
     option = next((o for o in options(view, review) if o["id"] == decision), None)
@@ -102,6 +100,4 @@ def validate(decision: str, reasons: list[str], note: str | None, follow_up: str
         return "Add a note for the senior underwriter"
     if decision == "hold" and not follow_up:
         return "Set a follow-up date"
-    if decision == "counter_offer" and not (terms and (terms.get("amount") or terms.get("amortization"))):
-        return "Enter the counter-offer terms"
     return None

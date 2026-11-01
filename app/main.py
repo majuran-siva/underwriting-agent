@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from underwriting import agent, broker, decisions
+from underwriting import agent, broker, decisions, evals
 from underwriting.demo_cases import CASES, REVIEWED, get_case
 
 ROOT = Path(__file__).parent.parent
@@ -59,6 +59,15 @@ def _case_for(st: dict) -> dict:
     return case
 
 
+def _with_edit(st: dict, draft: dict | None) -> dict | None:
+    """The drafted message with the underwriter's edits, noting if the file changed since they edited it."""
+    edit = st["message_edits"].get(draft["kind"]) if draft else None
+    if not edit:
+        return draft
+    return {**draft, "subject": edit["subject"], "body": edit["body"], "edited": True,
+            "edit_stale": edit["based_on"] != draft["body"]}
+
+
 def _view(batch_id: str) -> dict:
     st = _batch(batch_id)
     if not st.get("case_id"):
@@ -67,7 +76,7 @@ def _view(batch_id: str) -> dict:
     low_conf = [d["id"] for d in result["documents"] if d["confidence"] < agent.LOW_CONFIDENCE]
     requested = {cid for m in st["messages"] for cid in m["condition_ids"]}
     open_flags = [f["id"] for f in result["flags"] if f["id"] not in st["flag_reviews"]
-                  and f["check"] not in broker.DOCUMENT_REQUEST_CHECKS]   # those are handled by requesting the document
+                  and f["check"] not in broker.DOCUMENT_REQUEST_CHECKS]   # those go to the broker as conditions
     unconfirmed = [d for d in low_conf if d not in st["confirmed_docs"] and d not in st["declined_docs"]]
     blockers = ([f"review {len(open_flags)} issue{'s' * (len(open_flags) != 1)}"] if open_flags else []) + \
                ([f"confirm {len(unconfirmed)} hard-to-read document{'s' * (len(unconfirmed) != 1)}"] if unconfirmed else [])
@@ -78,13 +87,14 @@ def _view(batch_id: str) -> dict:
         "flag_reviews": st["flag_reviews"], "condition_reviews": st["condition_reviews"],
         "confirmed_docs": sorted(st["confirmed_docs"]), "declined_docs": sorted(st["declined_docs"]), "overrides": st["overrides"], "audit": st["audit"],
         "approved": st["approved"], "blockers": blockers, "reason_codes": REASON_CODES, "messages": st["messages"],
-        "request_draft": None if st["request_sent"] or decision else broker.document_request(result), "decision": decision}
+        "decision": decision}
     if decision and not decision.get("sent_at"):
         review["draft"] = broker.decision_message(result, decision, st["condition_reviews"], requested, decisions.DECLINE_REASONS)
     elif not st["approved"] and not decision:
         review["draft"] = broker.review_message(result, st["condition_reviews"], requested)
     else:
         review["draft"] = None
+    review["draft"] = _with_edit(st, review["draft"])
     review["report"] = broker.review_report(result, st["condition_reviews"], requested)
     review["decision_options"] = decisions.options(result, review)
     review["facts"] = decisions.file_facts(result, review)
@@ -127,7 +137,7 @@ def reviewed():
         sent = datetime.fromisoformat((st["decision"] or st["approved"])["at"])
         out.append({"app_no": pos["app_no"], "source": pos["source"], "borrowers": [b["name"] for b in app_["borrowers"]],
                     "address": app_["property"]["address"],
-                    "loan_amount": ((st["decision"] or {}).get("terms") or {}).get("amount") or app_["loan"]["amount"],
+                    "loan_amount": app_["loan"]["amount"],
                     "broker": pos["broker"], "brokerage": pos["brokerage"],
                     "outcome": decisions.LABELS[st["decision"]["type"]] if st["decision"] else "Conditions sent",
                     "reviewed_by": "You", "turnaround_min": max(1, round((sent - started).total_seconds() / 60)),
@@ -135,12 +145,18 @@ def reviewed():
     return out + REVIEWED
 
 
+@app.get("/api/eval")
+def run_eval():
+    """Every inbox file against its expected answer."""
+    return evals.run_all()
+
+
 @app.post("/api/uploads")
 def new_batch():
     batch_id = f"b{len(BATCHES) + 1:04d}"
     BATCHES[batch_id] = {"uploads": [], "filenames": set(), "case_id": None, "overrides": {}, "dismissed": set(),
                          "flag_reviews": {}, "condition_reviews": {}, "confirmed_docs": set(), "declined_docs": set(), "audit": [],
-                         "messages": [], "approved": None, "request_sent": False, "decision": None}
+                         "messages": [], "message_edits": {}, "approved": None, "decision": None}
     return {"batch_id": batch_id}
 
 
@@ -180,9 +196,6 @@ def start_review(batch_id: str):
     _log(st, "Agent", f"Received {len(st['uploads'])} files; review started (policy {agent.load_policy().credit['version']})")
     view = _view(batch_id)
     _log(st, "Agent", f"Review ready: {len(view['flags'])} issues, {len(view['conditions'])} draft conditions")
-    request = broker.document_request(view)
-    if request:   # drafted only; the underwriter decides when it goes
-        _log(st, "Agent", f"Drafted document request for the broker ({len(request['condition_ids'])} items)")
     return _view(batch_id)
 
 
@@ -191,21 +204,8 @@ def get_review(batch_id: str):
     return _view(batch_id)
 
 
-@app.get("/api/uploads/{batch_id}/whatif")
-def what_if(batch_id: str, amount: float | None = None, amortization: int | None = None):
-    """Ratios for counter-offer terms, without changing the file."""
-    st = _batch(batch_id)
-    overrides = {**st["overrides"], **({"loan:amount": {"value": amount}} if amount else {}),
-                 **({"loan:amortization": {"value": amortization}} if amortization else {})}
-    result = agent.run(_case_for(st), overrides, st["dismissed"])
-    over = [f["title"] for f in result["flags"] if f["id"].startswith("policy:")]
-    r = result["ratios"]
-    return {"gds": r["gds_qualifying"], "tds": r["tds_qualifying"], "ltv": r["ltv"], "payment": r["monthly_payment_contract"],
-            "within_policy": not over, "over": over}
-
-
 class Action(BaseModel):
-    kind: Literal["flag", "condition", "override", "confirm_doc", "send_request", "approve", "decide"]
+    kind: Literal["flag", "condition", "override", "confirm_doc", "approve", "decide", "edit_message"]
     target: str = ""
     action: str = ""  # flag: confirm | reject | escalate | undo; condition: accept | edit | reject | fulfill
     value: str | None = None
@@ -213,7 +213,6 @@ class Action(BaseModel):
     reasons: list[str] = []          # decide
     note: str | None = None          # decide
     follow_up: str | None = None     # decide: hold
-    terms: dict | None = None        # decide: counter_offer {amount, amortization}
 
 
 @app.post("/api/uploads/{batch_id}/action")
@@ -222,7 +221,7 @@ def act(batch_id: str, a: Action):
     decision_open = st["decision"] and not st["decision"].get("sent_at")
     if a.kind == "decide":
         return _decide(batch_id, st, a)
-    if st["approved"] and not (a.kind == "approve" and decision_open):
+    if st["approved"] and not (a.kind in ("approve", "edit_message") and decision_open):
         raise HTTPException(409, "Already sent to the broker")
     needs_reason = (a.kind == "flag" and a.action == "reject") or a.kind == "override" or \
                    (a.kind == "condition" and a.action in ("edit", "reject"))
@@ -262,13 +261,8 @@ def act(batch_id: str, a: Action):
             st["confirmed_docs"].add(a.target)
             st["declined_docs"].discard(a.target)
             _log(st, "Underwriter", f"Approved the agent's read of {a.target} against the source")
-    elif a.kind == "send_request":
-        request = _view(batch_id)["review"]["request_draft"]
-        if not request:
-            raise HTTPException(409, "No document request to send")
-        st["messages"].append({**request, "at": _now()})
-        st["request_sent"] = True
-        _log(st, "Underwriter", f"Sent document request to broker ({len(request['condition_ids'])} items)")
+    elif a.kind == "edit_message":
+        _edit_message(batch_id, st, a)
     elif a.kind == "approve":   # send the current draft: the decision letter if there is one, else the conditions
         view = _view(batch_id)
         if view["review"]["blockers"]:
@@ -276,8 +270,8 @@ def act(batch_id: str, a: Action):
         if not view["review"]["draft"]:
             raise HTTPException(409, "Nothing to send")
         message = {**view["review"]["draft"], "at": _now()}
-        st["request_sent"] = True   # the full message covers any unsent document request
         st["messages"].append(message)
+        st["message_edits"].pop(message["kind"], None)
         if decision_open:
             st["decision"]["sent_at"] = message["at"]
         st["approved"] = st["approved"] or {"at": message["at"], "conditions": message["condition_ids"]}
@@ -285,35 +279,39 @@ def act(batch_id: str, a: Action):
     return _view(batch_id)
 
 
+def _edit_message(batch_id: str, st: dict, a: Action):
+    """Save (or undo) the underwriter's wording for a draft. a.value is the body, a.note the subject."""
+    if a.action == "reset":
+        st["message_edits"].pop(a.target, None)
+        _log(st, "Underwriter", f"Restored the agent's draft of {a.target}")
+        return
+    if not (a.value or "").strip() or not (a.note or "").strip():
+        raise HTTPException(422, "The subject and message can't be empty")
+    st["message_edits"].pop(a.target, None)
+    review = _view(batch_id)["review"]
+    draft = review["draft"]
+    if not draft or draft["kind"] != a.target:
+        raise HTTPException(409, "There's no draft to edit")
+    st["message_edits"][a.target] = {"subject": a.note, "body": a.value, "based_on": draft["body"]}
+    _log(st, "Underwriter", f"Edited the {a.target} email before sending")
+
+
 def _decide(batch_id: str, st: dict, a: Action) -> dict:
-    """Record (or clear) the underwriter's decision. A counter-offer also restructures the loan for the ratios."""
+    """Record (or clear) the underwriter's decision."""
     if a.action == "clear":
         if st["decision"] and st["decision"].get("sent_at"):
             raise HTTPException(409, "The decision letter has already been sent")
         st["decision"] = None
-        st["overrides"].pop("loan:amount", None)
-        st["overrides"].pop("loan:amortization", None)
         _log(st, "Underwriter", "Decision cleared")
         return _view(batch_id)
     if st["decision"] and st["decision"].get("sent_at"):
         raise HTTPException(409, "The decision letter has already been sent")
     view = _view(batch_id)
-    error = decisions.validate(a.action, a.reasons, a.note, a.follow_up, a.terms, view, view["review"])
+    error = decisions.validate(a.action, a.reasons, a.note, a.follow_up, view, view["review"])
     if error:
         raise HTTPException(422, error)
-    if a.action == "counter_offer":
-        previous = {k: st["overrides"].get(k) for k in ("loan:amount", "loan:amortization")}
-        if a.terms.get("amount"):
-            st["overrides"]["loan:amount"] = {"value": float(a.terms["amount"]), "reason": "Counter-offer"}
-        if a.terms.get("amortization"):
-            st["overrides"]["loan:amortization"] = {"value": int(a.terms["amortization"]), "reason": "Counter-offer"}
-        over = [f["title"] for f in _view(batch_id)["flags"] if f["id"].startswith("policy:")]
-        if over:
-            for k, v in previous.items():
-                st["overrides"].pop(k, None) if v is None else st["overrides"].__setitem__(k, v)
-            raise HTTPException(422, "Counter-offer terms are still outside policy: " + "; ".join(over))
     st["decision"] = {"type": a.action, "label": decisions.LABELS[a.action], "reasons": a.reasons, "note": a.note,
-                      "follow_up": a.follow_up, "terms": a.terms, "at": _now(), "by": "You"}
+                      "follow_up": a.follow_up, "at": _now(), "by": "You"}
     _log(st, "Underwriter", f"Decision: {decisions.LABELS[a.action]}"
          + (f" ({', '.join(a.reasons)})" if a.reasons else "") + (f". Note: {a.note}" if a.note else ""))
     return _view(batch_id)

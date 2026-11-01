@@ -141,9 +141,9 @@ CASES: list[dict] = [
     },
     {
         "id": "case03",
-        "title": "Salaried – car loan missing from the application",
-        "summary": "Townhouse purchase. The bureau shows a car loan the application leaves out.",
-        "planted": ["undisclosed_debt"],
+        "title": "Salaried – undisclosed car loan and missing employment letter",
+        "summary": "Townhouse purchase. The bureau shows a car loan the application leaves out, and the employment letter is missing.",
+        "planted": ["undisclosed_debt", "missing_document"],
         "application": {
             "borrowers": [{"name": "Hannah Lefebvre", "credit_score": 718,
                            "incomes": [{"type": "salary", "annual_amount": "105000", "employer": "Vantage Civil Engineering"}]}],
@@ -155,8 +155,9 @@ CASES: list[dict] = [
                 {"type": "credit_card", "lender": "Trillium Card Services", "balance": "4100", "monthly_payment": "200"}],
         },
         "documents": [
-            *salaried_docs("b1", "Hannah Lefebvre", "Vantage Civil Engineering", 105000, 103200, 103650, "2016-09-12",
-                           ["scan001.pdf", "scan002.pdf", "scan003.pdf", "scan004.pdf"]),
+            *[d for d in salaried_docs("b1", "Hannah Lefebvre", "Vantage Civil Engineering", 105000, 103200, 103650, "2016-09-12",
+                                       ["scan001.pdf", "scan002.pdf", "scan003.pdf", "scan004.pdf"])
+              if d["type"] != "employment_letter"],   # planted: never submitted
             doc("bank", "bank_statement", "Chequing – 90 days", "statements.pdf",
                 {"name": "Hannah Lefebvre", "period": "2026-07-12 to 2026-10-10", "closing_balance": "121880.02",
                  "deposits": payroll("Vantage Civil Engineering", 2998.50),
