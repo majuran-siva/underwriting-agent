@@ -1,0 +1,14 @@
+version: "2026.1-placeholder"
+description: Condition wording by trigger. {placeholders} are filled from the flag's evidence. Placeholder values for demo.
+standard:
+  - {id: STD-1, text: "Satisfactory fire insurance naming {lender} as first mortgagee, effective on closing."}
+  - {id: STD-2, text: "Solicitor's confirmation of clear title and registration of the first mortgage."}
+by_check:
+  missing_document: "Provide {document}."
+  large_deposit: "Provide written explanation and proof of source for the ${amount} deposit on {date} ({description}). If a gift, provide a signed gift letter and the donor's bank statement showing the funds."
+  undisclosed_debt: "Provide the most recent statement for the {lender} {type} (balance ${balance}, ${payment}/month) and confirm whether it will remain open after closing."
+  income_mismatch: "Income on the pay stub (${stated}) does not match the 2025 T4 (${t4}) and NOA (${noa}). Provide an explanation and a letter from {employer} confirming base salary, bonus and changes since 2025."
+  paystub_ytd: "Provide the two most recent pay stubs directly from {employer}'s payroll provider, or a verbal employment verification by the lender."
+  pdf_edited: "Original pay stub to be obtained directly from {employer} or the payroll provider."   # neutral: never tell the broker why
+  low_confidence: "Provide a legible copy of the {document} (the copy provided could not be read reliably)."
+  self_employed_average: "Income qualified on the 2-year T1 average (${average}) instead of the stated ${stated}; confirm the borrower accepts the reduced qualifying income."

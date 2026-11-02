@@ -40,7 +40,7 @@ def test_case_record_holds_review():
 
 def test_all_policy_files_load_with_version():
     files = sorted(POLICY_DIR.glob("*.yaml"))
-    assert {f.stem for f in files} == {"credit_policy", "insurers", "products", "regulatory"}
+    assert {f.stem for f in files} == {"condition_templates", "credit_policy", "insurers", "products", "regulatory"}
     for f in files:
         data = yaml.safe_load(f.read_text())
         assert data["version"], f"{f.name} missing version"
