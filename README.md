@@ -2,6 +2,8 @@
 
 A prototype agent for Canadian mortgage underwriters. It does the first review of a broker's file and drafts a complete conditions list, which is everything the broker must provide. The underwriter reviews the work and makes every decision.
 
+**Try it live: [clearline-ftv7.onrender.com](https://clearline-ftv7.onrender.com/)** (the free host pauses when idle, so the first visit can take about a minute).
+
 **The agent decides what to look at. Fixed code decides the numbers. The underwriter decides the outcome.**
 
 All data is synthetic, and the lender, Maple Ridge Mortgage Co., is fictional. This is a capstone prototype, not financial advice or a production system.
