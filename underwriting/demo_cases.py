@@ -54,7 +54,7 @@ CASES: list[dict] = [
         "planted": [],
         "application": {
             "borrowers": [
-                {"name": "Priya Ramanathan", "credit_score": 761,
+                {"name": "Sarah Mitchell", "credit_score": 761,
                  "incomes": [{"type": "salary", "annual_amount": "95000", "employer": "Lakeshore Logistics Ltd."}]},
                 {"name": "Daniel Ostrowski", "credit_score": 734,
                  "incomes": [{"type": "salary", "annual_amount": "78000", "employer": "Northgate Health Partners"}]},
@@ -70,7 +70,7 @@ CASES: list[dict] = [
             ],
         },
         "documents": [
-            *salaried_docs("b1", "Priya Ramanathan", "Lakeshore Logistics Ltd.", 95000, 93400, 93950, "2018-05-14",
+            *salaried_docs("b1", "Sarah Mitchell", "Lakeshore Logistics Ltd.", 95000, 93400, 93950, "2018-05-14",
                            ["scan001.pdf", "scan002.pdf", "IMG_4471.jpg", "IMG_4472.jpg"]),
             *salaried_docs("b2", "Daniel Ostrowski", "Northgate Health Partners", 78000, 76900, 77120, "2020-01-06",
                            ["scan003.pdf", "letter.pdf", "docs_combined.pdf", "docs_combined.pdf"]),
@@ -78,7 +78,7 @@ CASES: list[dict] = [
                 {"name": "P. Ramanathan & D. Ostrowski", "period": "2026-07-12 to 2026-10-10", "closing_balance": "162410.55",
                  "deposits": payroll("Lakeshore Logistics Ltd.", 2780.12) + payroll("Northgate Health Partners", 2310.40)}),
             doc("bureau", "credit_bureau", "Credit bureau report", "bureau.pdf",
-                {"scores": {"Priya Ramanathan": 761, "Daniel Ostrowski": 734},
+                {"scores": {"Sarah Mitchell": 761, "Daniel Ostrowski": 734},
                  "tradelines": [{"lender": "Cedar Auto Finance", "type": "auto_loan", "balance": "14200", "monthly_payment": "350"},
                                 {"lender": "Trillium Card Services", "type": "credit_card", "balance": "2400", "monthly_payment": "120"}]}),
             doc("apa", "purchase_agreement", "Agreement of purchase and sale", "APS_signed.pdf",
@@ -87,7 +87,7 @@ CASES: list[dict] = [
                 {"value": "605000", "property_type": "condo", "living_area_sqft": 760, "marketability": "good"}),
             doc("tax", "property_tax", "Property tax bill", "IMG_4480.jpg", {"annual_tax": "3600"}),
             doc("condo", "condo_fees", "Condo status certificate", "status_cert.pdf", {"monthly_fees": "450"}),
-            doc("id1", "id", "Driver's licence – Priya Ramanathan", "IMG_4490.jpg", {"name": "Priya Ramanathan"}),
+            doc("id1", "id", "Driver's licence – Sarah Mitchell", "IMG_4490.jpg", {"name": "Sarah Mitchell"}),
             doc("id2", "id", "Driver's licence – Daniel Ostrowski", "IMG_4491.jpg", {"name": "Daniel Ostrowski"}),
         ],
     },
