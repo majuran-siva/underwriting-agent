@@ -99,7 +99,7 @@ def test_unrecognized_file_is_reported_not_read(client):
 
 
 def test_files_not_uploaded_show_as_missing(client):
-    _, v = upload_case(client, "case01", skip={"scan001.pdf"})  # Priya's pay stub
+    _, v = upload_case(client, "case01", skip={"scan001.pdf"})  # Sarah's pay stub
     assert any(f["check"] == "missing_document" and "pay stub" in f["title"] for f in v["flags"])
 
 

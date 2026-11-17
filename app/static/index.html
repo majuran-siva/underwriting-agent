@@ -171,7 +171,7 @@ button.link:active { color: #1a3866; background: none; }
 .tile.over .lim, .tile.over small { color: #fff; }
 
 /* tabs (dashboard + inbox): segmented, 10px radius, selected = ink */
-.tabs { display: flex; gap: 6px; padding: 20px 48px 0; overflow-x: auto; scrollbar-width: none; }
+.tabs { width: 100%; display: flex; gap: 6px; padding: 20px 48px 0; overflow-x: auto; scrollbar-width: none; }
 .tabbtn { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 14px; padding: 0 18px; height: 40px; border-radius: 40px; }
 .tabbtn.on { background: var(--primary); color: #fff; }
 .tbadge { font: 420 11px/1 var(--sans); padding: 4px 8px; border-radius: 40px; background: var(--card); color: var(--ink); border: 0; }
@@ -297,8 +297,10 @@ details.ocard:not([open]) .chev { transform: rotate(-90deg); }
 .onote { margin: 12px 0 0; font-size: 13px; color: var(--muted); }
 
 /* decision */
+#app > * { min-width: 0; }   /* let wide rows (tabs, tables) scroll inside the page instead of stretching it */
 #app:has(.decisionbar) { min-height: calc(100vh - 72px); display: flex; flex-direction: column; }
 .decisionbar { margin-top: auto; position: sticky; bottom: 0; z-index: 9; background: var(--card); color: var(--body); border-top: 1px solid var(--hairline); box-shadow: 0 -4px 16px rgba(40,37,59,.06); padding: 12px 48px; }
+.stepnow { display: block; font: 600 13px/1.4 var(--sans); color: var(--primary); }
 .baracts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .missingdocs { background: var(--coral-soft); border: 1px solid var(--coral-line); border-radius: var(--r-md); padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
 .missingalert { display: flex; width: 100%; height: auto; align-items: center; gap: 10px; text-align: left; white-space: normal; background: var(--coral-soft); border: 1px solid var(--coral-line); border-radius: var(--r-md); color: var(--coral); padding: 12px 16px; margin-bottom: 16px; font: inherit; cursor: pointer; }
@@ -407,11 +409,17 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .hright { align-items: stretch; }
   .kpis div, .tile { min-width: 0; flex: 1; padding: 10px 12px; }
   .tile b { font-size: 22px; }
+  .kpis b { font-size: 22px; white-space: normal; }
   .qrow { grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px; }
   .qrow.qhead { display: none; }
   .qrow > span:nth-child(3), .qrow > span:nth-child(5) { grid-column: 1 / -1; }
   .qrow > span:nth-child(2), .qrow > span:nth-child(6) { display: none; }
-  .cols, .viewer, .issues-grid, .attention, .ocols, .meters, .kvs.two { grid-template-columns: 1fr; }
+  .cols, .viewer, .issues-grid, .attention, .ocols, .meters, .kvs.two { grid-template-columns: minmax(0, 1fr); }
+  .ocol, .ocard, .ocard summary { min-width: 0; }
+  .tabs { padding: 16px 16px 0; }
+  .status { grid-template-columns: minmax(0, 1fr); }
+  .tiles { min-width: 0; }
+  .tile b { font-size: 22px; }
   .ocolhead { grid-template-columns: 1fr; } .ocolhead > span:first-child { display: none; }
   .tabs { padding: 16px 12px 0; }
   .cond { flex-direction: column; gap: 8px; }
@@ -599,6 +607,7 @@ function copyEval() {
 }
 
 async function sendSample(id) {
+  setNav("dash");
   const s = samples.find(x => x.id === id);
   const files = await Promise.all(s.files.map(async name => {
     const blob = await (await fetch(`/samples/${id}/${encodeURIComponent(name)}`)).blob();
@@ -790,8 +799,10 @@ function render() {
   <nav class="tabs inner" role="tablist">${tabs.map(t => `<button role="tab" aria-selected="${t.id === tab}" class="tabbtn ${t.id === tab ? "on" : ""}"
       onclick="setTab('${t.id}')">${t.label}${t.badge ? `<span class="tbadge ${t.tone || ""}">${t.badge}</span>` : ""}</button>`).join("")}</nav>
   <section class="band light tight"><div class="inner" id="tabpanel"></div></section>
-  <div class="decisionbar"><div class="inner"><span>${esc(decisionStatus(rv))}</span><div class="baracts">${tabButtons(tabs)}${decisionControl(rv)}</div></div></div>`;
+  <div class="decisionbar"><div class="inner"><span><b class="stepnow">Step ${tabs.findIndex(t => t.id === tab) + 1} of ${tabs.length} · ${esc(tabs.find(t => t.id === tab).label)}</b>${esc(decisionStatus(rv))}</span><div class="baracts">${tabButtons(tabs)}${decisionControl(rv)}</div></div></div>`;
   $("#app").querySelector("#tabpanel").innerHTML = panels[tab];
+  const row = $(".tabs"), on = row.querySelector(".tabbtn.on");   // keep the current tab in view when the row scrolls
+  if (on) row.scrollLeft += on.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - on.offsetWidth) / 2;
 }
 
 const msgState = {};
