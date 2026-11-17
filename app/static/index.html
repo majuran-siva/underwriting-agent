@@ -33,7 +33,26 @@ code { font-size: 13px; background: var(--surface-soft); padding: 1px 6px; borde
 .mainnav button { background: transparent; border: 0; color: var(--fog); padding: 8px 12px; border-radius: var(--r-sm); font: 450 14px/1 var(--sans); cursor: pointer; white-space: nowrap; }
 .mainnav button:hover { color: var(--on-dark); background: rgba(255,255,255,.08); }
 .mainnav button.on { color: #fff; background: rgba(255,255,255,.14); }
-.usermenu { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; font: 600 13px/1 var(--sans); }
+.usermenu { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 0; padding: 0; border-radius: 50%; background: var(--primary); color: #fff; font: 600 13px/1 var(--sans); cursor: pointer; }
+.usermenu:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.userwrap { position: relative; flex: none; }
+.userpop { position: absolute; right: 0; top: 46px; z-index: 20; min-width: 230px; background: var(--card); color: var(--body); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: 0 12px 32px rgba(23,23,33,.18); padding: 6px; }
+.userpop .userwho { padding: 10px 12px; border-bottom: 1px solid var(--hairline); margin-bottom: 4px; }
+.userpop .userwho b, .userpop .userwho small { display: block; }
+.userpop .userwho small { color: var(--muted); font-size: 13px; }
+.userpop button, .userpop a { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: var(--r-sm); padding: 10px 12px; font: 400 14px/1.3 var(--sans); color: var(--ink); text-decoration: none; cursor: pointer; height: auto; }
+.userpop button:hover, .userpop a:hover { background: var(--surface-soft); }
+dialog.guide { width: min(900px, calc(100vw - 32px)); }
+.guide .body { padding-bottom: 0; }
+.guidecols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.guidefoot { position: sticky; bottom: 0; display: flex; gap: 16px; align-items: center; background: var(--card); padding: 14px 0 24px; margin-top: 8px; border-top: 1px solid var(--hairline); }
+.guidefoot .guidenote { flex: 1; margin: 0; }
+.guidefoot button { flex: none; }
+.guide h3:focus { outline: none; }
+.guide h4 { margin: 18px 0 6px; font: 500 15px/1.3 var(--sans); color: var(--ink); }
+.guide ol, .guide ul { margin: 0 0 8px; padding-left: 20px; }
+.guide li { margin-bottom: 6px; }
+.guidenote { background: var(--surface-card); border-radius: var(--r-sm); padding: 10px 14px; }
 .casetag { display: inline-block; font: 600 11px/1.3 var(--sans); letter-spacing: .3px; text-transform: uppercase; color: var(--primary); }
 .casetag.refuse { color: var(--coral); }
 .evaltitle { font: 500 26px/1.2 var(--sans); color: var(--ink); margin: 0 0 6px; }
@@ -417,6 +436,8 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .cols, .viewer, .issues-grid, .attention, .ocols, .meters, .kvs.two { grid-template-columns: minmax(0, 1fr); }
   .ocol, .ocard, .ocard summary { min-width: 0; }
   .tabs { padding: 16px 16px 0; }
+  .guidecols { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .guidefoot { flex-direction: column; align-items: stretch; }
   .status { grid-template-columns: minmax(0, 1fr); }
   .tiles { min-width: 0; }
   .tile b { font-size: 22px; }
@@ -449,11 +470,48 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
     <button id="nav-eval" onclick="evalScreen()">Eval</button>
   </nav>
   <span class="spacer"></span>
-  <div class="usermenu" title="Underwriter (sample user)" aria-label="Signed in as underwriter (sample user)" role="img">UW</div>
+  <div class="userwrap">
+    <button class="usermenu" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu" onclick="toggleUserMenu()">UW</button>
+    <div class="userpop" id="userMenu" role="menu" hidden>
+      <div class="userwho"><b>Underwriter</b><small>Demo user · no real account</small></div>
+      <button role="menuitem" onclick="toggleUserMenu(false); openGuide()">How it works</button>
+      <a role="menuitem" href="https://github.com/majuran-siva/underwriting-agent" target="_blank" rel="noopener">View on GitHub ↗</a>
+    </div>
+  </div>
 </header>
 <main id="app"></main>
 <input type="file" id="picker" multiple hidden>
 <dialog id="dlg"><div class="body" id="dlgBody"></div></dialog>
+<dialog id="guide" class="guide" aria-labelledby="guideTitle"><div class="body">
+  <h3 id="guideTitle" tabindex="-1" autofocus>Welcome to ClearLine – Underwriting Agent</h3>
+  <p>An AI agent that does the first review of a mortgage file, so an underwriter can decide faster.</p>
+  <div class="guidecols">
+    <div>
+      <h4>When a broker submits an application, the agent:</h4>
+      <ul>
+        <li>sorts and reads the documents, and marks any that are missing or hard to read</li>
+        <li>cross-checks income, debts and deposits, and flags anything that doesn't match</li>
+        <li>checks GDS, TDS and LTV against lender policy, using fixed calculations</li>
+        <li>drafts the conditions list and one email to the broker, with a recommendation</li>
+      </ul>
+      <p>The underwriter reviews its work, makes the decision and sends the email.</p>
+    </div>
+    <div>
+      <h4>Try it in 3 steps</h4>
+      <ol>
+        <li>Click <b>Start review</b> on <b>Hannah Lefebvre</b>'s file. The agent reads the documents and flags problems.</li>
+        <li>Work through the tabs: check the issues, review the documents and send the broker email.</li>
+        <li>Click <b>Make decision</b>. You decide, and the agent only recommends.</li>
+      </ol>
+      <p>Then open <b>Eval</b> to see how the agent was tested.</p>
+    </div>
+  </div>
+  <p class="small muted">This is a prototype. Document reading is simulated and nothing is sent to anyone. You can reopen this guide from the <b>UW</b> menu.</p>
+  <div class="guidefoot">
+    <p class="guidenote"><b>All information here is fictional.</b> The borrowers, brokers, lender, documents and numbers are made up, and none of it belongs to real people.</p>
+    <button class="primary" onclick="closeGuide()">Start exploring</button>
+  </div>
+</div></dialog>
 
 <script>
 const $ = (s, el = document) => el.querySelector(s);
@@ -1133,7 +1191,22 @@ function openDoc(id, field, confirming) {
   }
 }
 
+function toggleUserMenu(open) {
+  const menu = $("#userMenu"), show = open ?? menu.hidden;
+  menu.hidden = !show; $("#userBtn").setAttribute("aria-expanded", show);
+}
+document.addEventListener("click", e => { if (!e.target.closest(".userwrap")) toggleUserMenu(false); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") toggleUserMenu(false); });
+function openGuide() { const g = $("#guide"); g.showModal(); g.scrollTop = 0; $("#guideTitle").focus(); }   // start at the top, not at the button
+function closeGuide() {
+  $("#guide").close();
+  try { localStorage.setItem("clearline-guide-seen", "1"); } catch {}
+}
+$("#guide").addEventListener("close", () => { try { localStorage.setItem("clearline-guide-seen", "1"); } catch {} });
 startScreen();
+let guideSeen = false;
+try { guideSeen = localStorage.getItem("clearline-guide-seen") === "1"; } catch {}
+if (!guideSeen) openGuide();
 </script>
 </body>
 </html>
