@@ -113,6 +113,54 @@ def write_jpg(path: Path, case_id: str, d: dict):
     img.save(path, "JPEG", quality=70, comment=marker(case_id, path.name).encode())
 
 
+def write_id_photo(path: Path, case_id: str, d: dict):
+    """A phone photo of a fictional photo ID lying on a desk: tilted, shadowed and blurred.
+    Generic layout and a SPECIMEN watermark, so it can't be mistaken for any real government card."""
+    name = d["fields"]["name"]
+    first, last = name.split(" ", 1)
+    font = lambda size: ImageFont.load_default(size=size)
+    card = Image.new("RGB", (860, 540), (244, 242, 236))
+    draw = ImageDraw.Draw(card)
+    draw.rectangle((0, 0, 860, 96), fill=(36, 62, 112))
+    draw.text((32, 18), "DRIVER'S LICENCE", fill=(255, 255, 255), font=font(40))
+    draw.text((34, 64), "Fictional Licensing Authority  -  SPECIMEN", fill=(200, 212, 235), font=font(20))
+    draw.rounded_rectangle((32, 124, 262, 414), radius=10, fill=(196, 202, 212))
+    draw.ellipse((97, 160, 197, 262), fill=(132, 140, 156))
+    draw.chord((62, 270, 232, 470), 180, 360, fill=(132, 140, 156))
+    rows = [("NAME", f"{last.upper()}, {first.upper()}"), ("ADDRESS", "12-480 ORCHARD LANE"), ("", "OTTAWA ON"),
+            ("DATE OF BIRTH", "1991/04/17"), ("LICENCE NO.", "SPECIMEN-0000-0000"), ("EXPIRES", "2029/04/17")]
+    y = 128
+    for label, value in rows:
+        if label:
+            draw.text((292, y), label, fill=(110, 110, 120), font=font(16))
+            y += 20
+        draw.text((292, y), value, fill=(25, 25, 30), font=font(26))
+        y += 40
+    draw.line([(600, 440), (640, 404), (668, 446), (708, 410), (746, 440), (800, 420)], fill=(30, 40, 90), width=3)
+    draw.text((32, 492), "Sample document for a software demo. Not a real ID.", fill=(150, 60, 60), font=font(18))
+    mark = Image.new("RGBA", card.size, (0, 0, 0, 0))
+    ImageDraw.Draw(mark).text((150, 230), "SPECIMEN", fill=(200, 40, 40, 70), font=font(120))
+    card = Image.alpha_composite(card.convert("RGBA"), mark.rotate(18, center=(430, 270)))
+    mask = Image.new("L", card.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, 859, 539), radius=34, fill=255)
+    photo = Image.new("RGB", (1200, 900), (150, 118, 86))                       # desk
+    for x in range(0, 1200, 7):
+        ImageDraw.Draw(photo).line([(x, 0), (x + 40, 900)], fill=(140 + x % 23, 109 + x % 17, 78), width=2)
+    shadow = Image.new("RGBA", (1000, 700), (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).rounded_rectangle((70, 80, 930, 620), radius=34, fill=(0, 0, 0, 110))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(18)).rotate(-8, expand=True)
+    photo.paste(shadow, (110, 90), shadow)
+    tilted = Image.new("RGBA", (1000, 700), (0, 0, 0, 0))
+    tilted.paste(card, (70, 80), mask)
+    tilted = tilted.rotate(-8, expand=True, resample=Image.BICUBIC)
+    photo.paste(tilted, (90, 70), tilted)
+    glare = Image.new("RGBA", photo.size, (0, 0, 0, 0))
+    ImageDraw.Draw(glare).ellipse((620, 120, 1020, 420), fill=(255, 255, 255, 60))
+    photo = Image.alpha_composite(photo.convert("RGBA"), glare.filter(ImageFilter.GaussianBlur(60))).convert("RGB")
+    photo = photo.filter(ImageFilter.GaussianBlur(3.2))                          # out of focus
+    photo.save(path, "JPEG", quality=62, comment=marker(case_id, path.name).encode())
+
+
 def main():
     for case in CASES:
         folder = OUT / case["id"]
@@ -124,7 +172,9 @@ def main():
             by_file.setdefault(d["filename"], []).append(d)
         for filename, docs in by_file.items():
             path = folder / filename
-            if filename.lower().endswith(".jpg"):
+            if docs[0].get("photo_id"):
+                write_id_photo(path, case["id"], docs[0])
+            elif filename.lower().endswith(".jpg"):
                 write_jpg(path, case["id"], docs[0])
             else:
                 write_pdf(path, case["id"], docs)
