@@ -489,12 +489,11 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   <span class="spacer"></span>
   <div class="userwrap">
     <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu" aria-label="Demo user menu" onclick="toggleUserMenu()"><span class="usermenu">UW</span><span class="userlabel">Demo user</span><span class="caret" aria-hidden="true">▾</span></button>
-    <div class="usertip" id="userTip" role="status" hidden>Guide, case study and GitHub are here</div>
+    <div class="usertip" id="userTip" role="status" hidden>The guide and case study are here</div>
     <div class="userpop" id="userMenu" role="menu" hidden>
       <div class="userwho"><b>Underwriter</b><small>Demo user · no real account</small></div>
       <button role="menuitem" onclick="toggleUserMenu(false); openGuide()">How it works</button>
       <a role="menuitem" href="/case-study" target="_blank" rel="noopener" onclick="toggleUserMenu(false)">Case study (PDF) ↗</a>
-      <a role="menuitem" href="https://github.com/majuran-siva/underwriting-agent" target="_blank" rel="noopener">View on GitHub ↗</a>
     </div>
   </div>
 </header>
