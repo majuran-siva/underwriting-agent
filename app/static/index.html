@@ -30,12 +30,19 @@ code { font-size: 13px; background: var(--surface-soft); padding: 1px 6px; borde
 
 /* nav */
 .mainnav { display: flex; gap: 4px; margin-left: 20px; }
-.mainnav button { background: transparent; border: 0; color: var(--fog); padding: 8px 12px; border-radius: var(--r-sm); font: 450 14px/1 var(--sans); cursor: pointer; white-space: nowrap; }
-.mainnav button:hover { color: var(--on-dark); background: rgba(255,255,255,.08); }
+.mainnav a, .mainnav button { text-decoration: none; background: transparent; border: 0; color: var(--fog); padding: 8px 12px; border-radius: var(--r-sm); font: 450 14px/1 var(--sans); cursor: pointer; white-space: nowrap; }
+.mainnav a:hover, .mainnav button:hover { color: var(--on-dark); background: rgba(255,255,255,.08); }
 .mainnav button.on { color: #fff; background: rgba(255,255,255,.14); }
 .usermenu { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 0; padding: 0; border-radius: 50%; background: var(--primary); color: #fff; font: 600 13px/1 var(--sans); cursor: pointer; }
 .usermenu:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .userwrap { position: relative; flex: none; }
+.userbtn { display: flex; align-items: center; gap: 8px; height: auto; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); border-radius: 999px; padding: 3px 12px 3px 3px; color: var(--on-dark); font: 450 14px/1 var(--sans); cursor: pointer; }
+.userbtn:hover { background: rgba(255,255,255,.12); }
+.userbtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.userbtn .usermenu { width: 30px; height: 30px; font-size: 12px; }
+.userbtn .caret { font-size: 11px; color: var(--fog); }
+.usertip { position: absolute; right: 0; top: 52px; z-index: 19; white-space: nowrap; background: var(--primary); color: #fff; font: 500 13px/1 var(--sans); padding: 10px 12px; border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(23,23,33,.25); }
+.usertip::before { content: ""; position: absolute; top: -6px; right: 22px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--primary); }
 .userpop { position: absolute; right: 0; top: 46px; z-index: 20; min-width: 230px; background: var(--card); color: var(--body); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: 0 12px 32px rgba(23,23,33,.18); padding: 6px; }
 .userpop .userwho { padding: 10px 12px; border-bottom: 1px solid var(--hairline); margin-bottom: 4px; }
 .userpop .userwho b, .userpop .userwho small { display: block; }
@@ -458,7 +465,12 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   .band.night .kpis { display: grid; grid-template-columns: 1fr 1fr; }
   .kpis span { white-space: normal; }
   .mainnav { margin-left: 0; }
-  .mainnav button { padding: 8px 6px; font-size: 13px; }
+  .mainnav { overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1; }
+  .mainnav { gap: 0; }
+  .mainnav a, .mainnav button { padding: 8px 5px; font-size: 13px; }
+  header .spacer { display: none; }
+  .userbtn .userlabel, .mainnav .wide { display: none; }
+  .userbtn { padding-right: 8px; gap: 4px; }
 }
 </style>
 </head>
@@ -466,12 +478,15 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
 <header>
   <div class="brand"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#5266eb"/><path d="M21.5 10.2A8 8 0 1 0 21.5 21.8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M13 16h13" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="26" cy="16" r="2.6" fill="#9cb4e8"/></svg><div><h1>ClearLine</h1><small>Underwriting agent</small></div></div>
   <nav class="mainnav" aria-label="Main">
-    <button id="nav-dash" onclick="startScreen()">Demo Dashboard</button>
+    <button id="nav-dash" onclick="startScreen()"><span class="wide">Demo </span>Dashboard</button>
     <button id="nav-eval" onclick="evalScreen()">Eval</button>
+    <button onclick="openGuide()">Guide</button>
+    <a href="/case-study" target="_blank" rel="noopener">Case study<span class="wide"> ↗</span></a>
   </nav>
   <span class="spacer"></span>
   <div class="userwrap">
-    <button class="usermenu" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu" onclick="toggleUserMenu()">UW</button>
+    <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu" aria-label="Demo user menu" onclick="toggleUserMenu()"><span class="usermenu">UW</span><span class="userlabel">Demo user</span><span class="caret" aria-hidden="true">▾</span></button>
+    <div class="usertip" id="userTip" role="status" hidden>Guide, case study and GitHub are here</div>
     <div class="userpop" id="userMenu" role="menu" hidden>
       <div class="userwho"><b>Underwriter</b><small>Demo user · no real account</small></div>
       <button role="menuitem" onclick="toggleUserMenu(false); openGuide()">How it works</button>
@@ -1194,11 +1209,16 @@ function openDoc(id, field, confirming) {
 
 function toggleUserMenu(open) {
   const menu = $("#userMenu"), show = open ?? menu.hidden;
+  if (show) $("#userTip").hidden = true;
   menu.hidden = !show; $("#userBtn").setAttribute("aria-expanded", show);
 }
 document.addEventListener("click", e => { if (!e.target.closest(".userwrap")) toggleUserMenu(false); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") toggleUserMenu(false); });
 function openGuide() { const g = $("#guide"); g.showModal(); g.scrollTop = 0; $("#guideTitle").focus(); }   // start at the top, not at the button
+function showUserTip() {
+  const tip = $("#userTip"); tip.hidden = false;
+  setTimeout(() => { tip.hidden = true; }, 5000);
+}
 function closeGuide() {
   $("#guide").close();
   try { localStorage.setItem("clearline-guide-seen", "1"); } catch {}
@@ -1207,7 +1227,7 @@ $("#guide").addEventListener("close", () => { try { localStorage.setItem("clearl
 startScreen();
 let guideSeen = false;
 try { guideSeen = localStorage.getItem("clearline-guide-seen") === "1"; } catch {}
-if (!guideSeen) openGuide();
+if (!guideSeen) { openGuide(); $("#guide").addEventListener("close", showUserTip, {once: true}); }
 </script>
 </body>
 </html>
