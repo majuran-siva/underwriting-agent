@@ -263,6 +263,11 @@ def test_eval_fails_when_the_answer_differs():
     assert {c["name"] for c in result["checks"] if not c["passed"]} == {"Recommendation", "Issues found, none invented"}
 
 
+def test_case_study_pdf_is_served():
+    r = TestClient(app).get("/case-study")
+    assert r.status_code == 200 and r.headers["content-type"] == "application/pdf" and r.content.startswith(b"%PDF")
+
+
 def test_eval_endpoint():
     client = TestClient(app)
     assert client.get("/api/eval").json()["files_passed"] == 6

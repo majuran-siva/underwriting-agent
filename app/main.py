@@ -106,6 +106,12 @@ def index():
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/case-study")
+def case_study():
+    return FileResponse(STATIC / "ClearLine_Case_Study.pdf", media_type="application/pdf",
+                        headers={"Content-Disposition": 'inline; filename="ClearLine_Case_Study.pdf"'})
+
+
 @app.get("/api/samples")
 def samples():
     """Sample loan files available to drag in (or upload with one click)."""

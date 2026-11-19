@@ -173,7 +173,7 @@ CASES: list[dict] = [
                 {"value": "520000", "property_type": "townhouse", "marketability": "good"}),
             doc("tax", "property_tax", "Property tax bill", "tax.pdf", {"annual_tax": "4200"}),
             doc("id1", "id", "Driver's licence – Hannah Lefebvre", "IMG_2201.jpg", {"name": "Hannah Lefebvre"},
-                confidence=0.55, quality_note="Phone photo, skewed and blurred; details partly illegible"),
+                confidence=0.55, quality_note="Phone photo, skewed and blurred; details partly illegible", photo_id=True),
         ],
     },
     {
