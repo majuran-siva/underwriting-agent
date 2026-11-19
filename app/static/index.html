@@ -132,6 +132,9 @@ button.link:active { color: #1a3866; background: none; }
 .queue { border: 1px solid var(--hairline); border-radius: var(--r-md); overflow: hidden; margin-bottom: 16px; background: var(--card); }
 .queue.over { outline: 2px solid var(--info-border); outline-offset: 3px; }
 .qrow { display: grid; grid-template-columns: 1.1fr .8fr 2.2fr 1fr 1.5fr 1fr 150px; gap: 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--hairline); cursor: pointer; }
+.qrow.starthere { background: var(--surface-card); box-shadow: inset 4px 0 0 var(--primary); }
+.startbadge { display: inline-block; margin-bottom: 6px; padding: 3px 8px; border-radius: 999px; background: var(--primary); color: #fff; font: 600 11px/1.2 var(--sans); letter-spacing: .3px; white-space: nowrap; }
+.rowbtn.primary { background: var(--primary); color: #fff; }
 .qrow:active { background: var(--surface-soft); }
 .qrow.static { cursor: default; }
 .qrow.qhead { border-top: 0; cursor: default; background: var(--surface-soft); font: 500 12px/1 var(--sans); letter-spacing: .28px; text-transform: uppercase; color: var(--muted); padding: 14px 20px; }
@@ -553,6 +556,7 @@ const ago = m => m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} hr ${m % 60} m
 let listTab = "new";
 const OUTCOME_TONE = {"Conditions sent": "attn", "Clear to approve": "ok", "Referred to senior": "attn", "Declined": "bad"};
 function setNav(id) { ["dash", "eval"].forEach(n => $("#nav-" + n).classList.toggle("on", n === id)); }
+const START_HERE = "case03";   // Hannah Lefebvre: the file the guide and demo walk through
 async function startScreen(which) {
   view = null; setNav("dash");
   if (which) listTab = which;
@@ -573,14 +577,14 @@ async function startScreen(which) {
          <div><b>${avgTurn} min</b><span>Avg. turnaround</span></div>
          <div><b>${done.filter(r => r.outcome === "Conditions sent").length}</b><span>Conditions sent</span></div></div>`;
   const src = r => `<span class="src">${esc(r.source)}</span>`;
-  const newRows = rows.map(r => `<div class="qrow" role="row" onclick="sendSample('${r.id}')">
-      <span><b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
+  const newRows = rows.map(r => `<div class="qrow ${r.id === START_HERE ? "starthere" : ""}" role="row" onclick="sendSample('${r.id}')">
+      <span>${r.id === START_HERE ? `<span class="startbadge">★ Start here</span>` : ""}<b>${esc(r.pos.app_no)}</b><small><span class="dotnew"></span>New · ${r.files.length} docs</small></span>
       <span>${src(r.pos)}</span>
       <span><b>${esc(r.borrowers.join(" & "))}</b><small>${esc(r.address)} · ${esc(r.income_type)}</small></span>
       <span><b>${money(r.loan_amount)}</b><small>of ${money(r.purchase_price)}</small></span>
       <span><b>${esc(r.pos.broker)}</b><small>${esc(r.pos.brokerage)}</small></span>
       <span><small>${ago(r.pos.received_min_ago)}</small></span>
-      <span><button class="rowbtn" onclick="event.stopPropagation(); sendSample('${r.id}')">Start review</button></span></div>`).join("");
+      <span><button class="rowbtn ${r.id === START_HERE ? "primary" : ""}" onclick="event.stopPropagation(); sendSample('${r.id}')">Start review</button></span></div>`).join("");
   const doneRows = done.map(r => `<div class="qrow static" role="row">
       <span><b>${esc(r.app_no)}</b><small>${esc(r.reviewed_by)} · ${r.turnaround_min} min</small></span>
       <span>${src(r)}</span>
