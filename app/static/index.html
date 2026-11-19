@@ -41,8 +41,6 @@ code { font-size: 13px; background: var(--surface-soft); padding: 1px 6px; borde
 .userbtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .userbtn .usermenu { width: 30px; height: 30px; font-size: 12px; }
 .userbtn .caret { font-size: 11px; color: var(--fog); }
-.usertip { position: absolute; right: 0; top: 52px; z-index: 19; white-space: nowrap; background: var(--primary); color: #fff; font: 500 13px/1 var(--sans); padding: 10px 12px; border-radius: var(--r-sm); box-shadow: 0 8px 24px rgba(23,23,33,.25); }
-.usertip::before { content: ""; position: absolute; top: -6px; right: 22px; border: 6px solid transparent; border-top: 0; border-bottom-color: var(--primary); }
 .userpop { position: absolute; right: 0; top: 46px; z-index: 20; min-width: 230px; background: var(--card); color: var(--body); border: 1px solid var(--hairline); border-radius: var(--r-md); box-shadow: 0 12px 32px rgba(23,23,33,.18); padding: 6px; }
 .userpop .userwho { padding: 10px 12px; border-bottom: 1px solid var(--hairline); margin-bottom: 4px; }
 .userpop .userwho b, .userpop .userwho small { display: block; }
@@ -489,7 +487,6 @@ select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p
   <span class="spacer"></span>
   <div class="userwrap">
     <button class="userbtn" id="userBtn" aria-haspopup="true" aria-expanded="false" aria-controls="userMenu" aria-label="Demo user menu" onclick="toggleUserMenu()"><span class="usermenu">UW</span><span class="userlabel">Demo user</span><span class="caret" aria-hidden="true">▾</span></button>
-    <div class="usertip" id="userTip" role="status" hidden>The guide and case study are here</div>
     <div class="userpop" id="userMenu" role="menu" hidden>
       <div class="userwho"><b>Underwriter</b><small>Demo user · no real account</small></div>
       <button role="menuitem" onclick="toggleUserMenu(false); openGuide()">How it works</button>
@@ -1212,16 +1209,11 @@ function openDoc(id, field, confirming) {
 
 function toggleUserMenu(open) {
   const menu = $("#userMenu"), show = open ?? menu.hidden;
-  if (show) $("#userTip").hidden = true;
   menu.hidden = !show; $("#userBtn").setAttribute("aria-expanded", show);
 }
 document.addEventListener("click", e => { if (!e.target.closest(".userwrap")) toggleUserMenu(false); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") toggleUserMenu(false); });
 function openGuide() { const g = $("#guide"); g.showModal(); g.scrollTop = 0; $("#guideTitle").focus(); }   // start at the top, not at the button
-function showUserTip() {
-  const tip = $("#userTip"); tip.hidden = false;
-  setTimeout(() => { tip.hidden = true; }, 5000);
-}
 function closeGuide() {
   $("#guide").close();
   try { localStorage.setItem("clearline-guide-seen", "1"); } catch {}
@@ -1230,7 +1222,7 @@ $("#guide").addEventListener("close", () => { try { localStorage.setItem("clearl
 startScreen();
 let guideSeen = false;
 try { guideSeen = localStorage.getItem("clearline-guide-seen") === "1"; } catch {}
-if (!guideSeen) { openGuide(); $("#guide").addEventListener("close", showUserTip, {once: true}); }
+if (!guideSeen) openGuide();
 </script>
 </body>
 </html>
